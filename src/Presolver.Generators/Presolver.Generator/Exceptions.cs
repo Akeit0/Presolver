@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
 
 #endregion
 
@@ -38,4 +40,11 @@ public class CircularDependencyException(string message) : PresolverGeneratorExc
 public class UnregisteredTypeException(string message) : PresolverGeneratorException(message)
 {
     public override string FormatedMessage => "Unregistered type: " + Message;
+}
+
+public class UnresolvableParameterException(string message,IParameterSymbol parameterSymbol) : PresolverGeneratorException(message)
+{
+    public override string FormatedMessage => "Unresolvable param: " + Message;
+    public Location? Location => parameterSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().GetLocation();
+    
 }

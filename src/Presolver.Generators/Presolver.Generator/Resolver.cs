@@ -35,8 +35,8 @@ public abstract class Resolver(ImmutableArray<ITypeSymbol> interfaces, Scope sco
         get
         {
             if (usableTypeName != null) return usableTypeName;
-            if (Id.HasValue) return usableTypeName = Type.UsableName() + Id.Value;
-            return usableTypeName = Type.UsableName();
+            if (Id.HasValue) return usableTypeName = Type.ToUsableName() + Id.Value;
+            return usableTypeName = Type.ToUsableName();
         }
         protected set => usableTypeName = value;
     }

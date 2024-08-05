@@ -22,19 +22,34 @@ public sealed class ByNewResolver : Resolver
                 (type.IsUnboundGenericType ? type.OriginalDefinition : type)
                 .InstanceConstructors
                 .Where(x => x.DeclaredAccessibility == Accessibility.Public).ToList();
+            if(applicableConstructors.Count == 0)
+            {
+                dependencies = ImmutableArray<ITypeSymbol>.Empty;
+                refs.TypeDependencies.Add(type, dependencies);
+                return;
+            }
             var ctor = applicableConstructors[0];
             var parameters = ctor.Parameters;
             if (parameters.Length == 0)
             {
                 dependencies = ImmutableArray<ITypeSymbol>.Empty;
                 if (!type.IsValueType) return;
-                if (0 >= applicableConstructors.Count) return;
+                if (0 >= applicableConstructors.Count)
+                {
+                    dependencies = ImmutableArray<ITypeSymbol>.Empty;
+                    refs.TypeDependencies.Add(type, dependencies);
+                    return;
+                }
                 parameters = applicableConstructors[1].Parameters;
             }
 
             var builder = ImmutableArray.CreateBuilder<ITypeSymbol>(parameters.Length);
 
-            foreach (var param in parameters) builder.Add(param.Type);
+            foreach (var param in parameters)
+            {
+                param.ThrowIfNotResolvable();
+                builder.Add(param.Type);
+            }
 
             dependencies = builder.ToImmutable();
             refs.TypeDependencies.Add(type, dependencies);

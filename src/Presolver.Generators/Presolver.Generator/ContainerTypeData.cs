@@ -204,7 +204,7 @@ public sealed class ContainerTypeData
         }
         catch (Exception e)
         {
-            RegisterException = e;
+            Exceptions.Add(e);;
         }
     }
 
@@ -223,7 +223,7 @@ public sealed class ContainerTypeData
 
     public ContainerTypeData? Parent { get; set; }
 
-    public Exception? RegisterException { get; set; }
+    public List<Exception> Exceptions { get; set; }= new();
 
 
     public bool TryGetResolveMethod(ITypeSymbol interfaceType, out Resolver? resolveMethod, ref int depth)
@@ -726,7 +726,7 @@ public sealed class ContainerTypeData
         }
     }
 
-    public void WriteFallBack(CodeWriter writer, CodeWriter scopedWriter, string message)
+    public void WriteFallBack(CodeWriter writer, CodeWriter scopedWriter)
     {
         writer.AppendLine("#pragma warning disable CS1998");
         if (ContainerType.ContainingNamespace is { IsGlobalNamespace: false })
@@ -736,9 +736,13 @@ public sealed class ContainerTypeData
             writer.BeginBlock();
         }
 
-        writer.Append("[global::Presolver.Error(\"");
-        writer.Append(message);
-        writer.AppendLine("\")]");
+        foreach (var exception in Exceptions)
+        {
+            writer.Append("[global::Presolver.Error(\"");
+            writer.Append(exception is PresolverGeneratorException generatorException ? generatorException.FormatedMessage : exception.Message);
+            writer.AppendLine("\")]");
+        }
+       
         writer.Append("partial class ");
         writer.Append(ContainerType.NameWithGenerics());
         var interfaceName = ContainerType.ToFullyQualifiedString() + ".IInterface";

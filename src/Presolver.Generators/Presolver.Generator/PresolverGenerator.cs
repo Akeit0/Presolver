@@ -98,8 +98,9 @@ internal class PresolverGenerator : IIncrementalGenerator
                         if (!containers.TryGetValue(type, out var graph)) graph = new(type, containers, generationContext);
 
                         if (ct.IsCancellationRequested) return;
-                        var exception = graph.RegisterException;
-                        if (exception == null)
+                        var exceptions = graph.Exceptions;
+                        if (exceptions.Count==0)
+                        {
                             try
                             {
                                 graph.Resolve();
@@ -107,35 +108,36 @@ internal class PresolverGenerator : IIncrementalGenerator
                             }
                             catch (Exception e)
                             {
-                                exception = e;
+                                exceptions.Add(e);
+                            }
+                        }
 
-                                if (e is CircularDependencyException)
+                        if (exceptions .Count!=0)
+                        {
+                            foreach (var exception in exceptions)
+                            {
+                                if(exception is PresolverGeneratorException presolverGeneratorException)
                                 {
-                                    generationContext.ReportCircularDependency(e.Message);
-                                }
-                                else if (e is UnregisteredTypeException)
-                                {
-                                    generationContext.ReportUnregisteredType(e.Message);
+                                    generationContext.ReportDiagnostic(presolverGeneratorException);
                                 }
                                 else
                                 {
                                     sourceProductionContext.ReportDiagnostic(
                                         Diagnostic.Create(
                                             DiagnosticDescriptors.UnexpectedErrorDescriptor,
-                                            node.Identifier.GetLocation(), e.Message
+                                            node.Identifier.GetLocation(), exception.Message
                                         )
                                     );
                                 }
+                                errorBuilder.AppendLine(exception.ToString());
                             }
-
-                        if (exception != null)
-                        {
-                            errorBuilder.AppendLine(exception.ToString());
+                          
                             file.Clear();
                             scopedIndenter.Clear();
+                           
                             try
                             {
-                                graph.WriteFallBack(file, scopedIndenter, exception is PresolverGeneratorException c ? c.FormatedMessage : exception.Message);
+                                graph.WriteFallBack(file, scopedIndenter);
                             }
                             catch (Exception fallbackException)
                             {
@@ -144,10 +146,7 @@ internal class PresolverGenerator : IIncrementalGenerator
                         }
 
 
-                        var fullType = type.ToFullyQualifiedString()
-                            .Replace("global::", "")
-                            .Replace("<", "_")
-                            .Replace(">", "_");
+                        var fullType = type.ToUsableName();
 
                         sourceProductionContext.AddSource($"{fullType}.g.cs", file.ToString());
                         errorBuilder.Append("End ");

@@ -113,11 +113,6 @@ public class PresolverContext(Compilation compilation, SourceProductionContext c
                     {
                         var param = parameters[index];
                         var paramType = param.Type;
-
-                        if (paramType.IsRefLikeType)
-                        {
-                        }
-
                         builder.Add(paramType);
                     }
 
@@ -140,6 +135,22 @@ public class PresolverContext(Compilation compilation, SourceProductionContext c
         context.ReportDiagnostic(diagnostic);
     }
 
+    public void ReportDiagnostic(PresolverGeneratorException exception)
+    {
+        if (exception is CircularDependencyException)
+        {
+            ReportCircularDependency(exception.Message);
+        }
+        else if (exception is UnregisteredTypeException)
+        {
+            ReportUnregisteredType(exception.Message);
+        }
+        else if(exception is UnresolvableParameterException unresolvableParameterException)
+        {
+            ReportUnresolvableParameter(unresolvableParameterException);
+        }
+    }
+    
 
     public void ReportCircularDependency(string message)
     {
@@ -149,5 +160,9 @@ public class PresolverContext(Compilation compilation, SourceProductionContext c
     public void ReportUnregisteredType(string message)
     {
         context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnregisteredType, CurrentLocation, message));
+    }
+    public void ReportUnresolvableParameter(UnresolvableParameterException exception)
+    {
+        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnresolvableParameter, exception.Location??CurrentLocation, exception.Message));
     }
 }

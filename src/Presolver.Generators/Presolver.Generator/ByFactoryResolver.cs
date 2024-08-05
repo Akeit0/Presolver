@@ -28,8 +28,9 @@ public sealed class ByFactoryResolver : Resolver
 
         foreach (var param in parameters)
         {
+            param.ThrowIfNotResolvable();
             var paramType = param.Type;
-            if (paramType is { } namedTypeSymbol) builder.Add(namedTypeSymbol);
+            builder.Add(paramType);
         }
 
         dependencies = builder.ToImmutable();

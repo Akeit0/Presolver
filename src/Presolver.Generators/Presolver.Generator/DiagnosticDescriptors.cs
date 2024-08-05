@@ -65,4 +65,19 @@ internal static class DiagnosticDescriptors
         Category,
         DiagnosticSeverity.Error,
         true);
+
+    public static readonly DiagnosticDescriptor UnresolvableParameter = new(
+        "PRESOLVER008",
+        "The parameter is not supported",
+        "Parameter {0} is not supported",
+        Category,
+        DiagnosticSeverity.Error, true);
+    
+    public static readonly DiagnosticDescriptor NonPublicMethodInjections = new(
+        "PRESOLVER009",
+        "Non public method injection is not supported",
+        "Non public injection {0} is not supported",
+        Category,
+        DiagnosticSeverity.Error, true);
+    
 }
