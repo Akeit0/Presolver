@@ -7,6 +7,27 @@
         <LangVersion>12</LangVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Title>Presolver</Title>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Version>0.1.0</Version>
+        <Copyright>﻿Copyright (c) 2024 Akeit0</Copyright>
+        <Description>Dependency injection container for .NET to resolve dependencies at compile time</Description>
     </PropertyGroup>
+	<!-- Bundle SourceGenerator -->
+	<ItemGroup>
+		<None Include="..\\Presolver.Generators\Presolver.Generator\bin\$(Configuration)\netstandard2.0\Presolver.Generator.dll"
+		      PackagePath="analyzers\dotnet\roslyn4.1\cs"
+		      Pack="true"
+		      Visible="false" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Presolver.Generators\Presolver.Generator\Presolver.Generator.csproj"
+		                  ReferenceOutputAssembly="false" />
+	</ItemGroup>
+    <ItemGroup>
+      <None Include="..\..\README.md">
+        <Pack>True</Pack>
+        <PackagePath>\</PackagePath>
+      </None>
+    </ItemGroup>
 
 </Project>
