@@ -60,7 +60,7 @@ internal class PresolverGenerator : IIncrementalGenerator
                 static (context, cancellation) => context)
             .Combine(context.CompilationProvider)
             .WithComparer(Comparer.Instance);
-        context.RegisterImplementationSourceOutput(
+        context.RegisterSourceOutput(
             context.CompilationProvider.Combine(provider.Collect()),
             (sourceProductionContext, t) =>
             {

@@ -56,7 +56,7 @@ public class PresolverContext(Compilation compilation, SourceProductionContext c
         var baseType = type.BaseType;
         while (baseType != null)
         {
-            if (SymbolEqualityComparer.Default.Equals(baseType, ContainerBaseType))
+            if(baseType.ContainingNamespace.Name == "Presolver"&& baseType.Name == "ContainerBase")
                 return true;
             var attributes = baseType.GetAttributes();
             if (attributes.Any(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, GenerateContainerAttributeType)))
