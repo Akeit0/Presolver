@@ -17,13 +17,13 @@ public static class TypeExtensions
 
     public static string ToUsableName(this ITypeSymbol type)
     {
-        var name = type.ToFullyQualifiedString();
-        if (!name.StartsWith("global::")) return name;
-        Span<char> span = stackalloc char[name.Length - 8];
-        for (var i = 8; i < name.Length; i++)
+        var name = type.ToFullyQualifiedString().Replace("global::", "");
+        Span<char> span = stackalloc char[name.Length];
+        for (var i = 0; i < name.Length; i++)
         {
             var c = name[i];
-            span[i - 8] = c is '.' or '<' or '>' ? '_' : c;
+            
+            span[i] = c is '.' or '<' or '>' ? '_' : c;
         }
 
         return span.ToString();
