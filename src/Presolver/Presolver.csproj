@@ -8,8 +8,8 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Title>Presolver</Title>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <Version>0.1.0</Version>
-        <Copyright>﻿Copyright (c) 2024 Akeit0</Copyright>
+        <Version>0.1.1</Version>
+        <Copyright>Copyright (c) 2024 Akeit0</Copyright>
         <Description>Dependency injection container for .NET to resolve dependencies at compile time</Description>
     </PropertyGroup>
 	<!-- Bundle SourceGenerator -->

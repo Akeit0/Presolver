@@ -4,4 +4,7 @@ Inspired by  [stronginject](https://github.com/YairHalberstadt/stronginject).
 
 
 ## NuGet
-https://www.nuget.org/packages/Presolver/0.1.0#usedby-body-tab
+https://www.nuget.org/packages/Presolver/0.1.1
+```
+dotnet add package Presolver --version 0.1.1
+```
