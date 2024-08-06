@@ -15,24 +15,22 @@ using var s = childContainer.CreateScope();
 Console.WriteLine(s.Resolve<B>());
 
 
-
-// B {a: {A {id:0}, A {id:1}} ,i:1}
-// B {a: {A {id:0}, A {id:2}} ,i:1}
+// B {a: {A {container:Container id:0}, A {container:Container id:1}} ,i:1}
+// B {a: {A {container:Container id:0}, A {container:Container id:2}} ,i:1}
 // ----------------------------------
-// B {a: {A {id:3}, A {id:4}} ,i:2}
-// C { b:B {a: {A {id:3}, A {id:5}} ,i:2}, a:A {id:6} ,d:InstanceD { name:SomeName, b:B {a: {A {id:3}, A {id:7}} ,i:2}}}
-// A {id:8}
+// B {a: {A {container:ChildContainer id:3}, A {container:Container id:4}} ,i:2}
+// C { b:B {a: {A {container:ChildContainer id:3}, A {container:Container id:5}} ,i:2}, a:A {container:Container id:6} ,d:InstanceD { name:SomeName, b:B {a: {A {container:ChildContainer id:3}, A {container:Container id:7}} ,i:2}}}
+// A {container:Container id:8}
 // ----------------------------------
-//     B {a: {A {id:9}, A {id:10}} ,i:2}
-// Dispose A {id:9}
-// Dispose InstanceD { name:SomeName, b:B {a: {A {id:3}, A {id:7}} ,i:2}}
-// Dispose A {id:3}
-// Dispose A {id:0}
-
+// B {a: {A {container:ChildContainer+ChildScope id:9}, A {container:Container id:10}} ,i:2}
+// Dispose A {container:ChildContainer+ChildScope id:9}
+// Dispose InstanceD { name:SomeName, b:B {a: {A {container:ChildContainer id:3}, A {container:Container id:7}} ,i:2}}
+// Dispose A {container:ChildContainer id:3}
+// Dispose A {container:Container id:0}
 
 public interface IAInterface;
 
-public partial class A : IAInterface, IDisposable
+public partial class A(ContainerBase container) : IAInterface, IDisposable
 {
     static int _counter;
 
@@ -58,7 +56,7 @@ public partial class InstanceD(string name) : IDisposable
 public sealed partial class Container : ContainerBase, IScoped<IAInterface, A>, ITransient<B, B>
 {
     [Factory] Transient<int> GetInt() => 1;
-    [Factory] Transient<IAInterface, A> GetA() => new A();
+    [Factory] Transient<IAInterface, A> GetA() => new A(this);
 }
 
 
@@ -77,7 +75,7 @@ partial class A
 {
     public override string ToString()
     {
-        return $"A {{id:{id}}}";
+        return $"A {{container:{container.GetType()} id:{id}}}";
     }
 
     public void Dispose()

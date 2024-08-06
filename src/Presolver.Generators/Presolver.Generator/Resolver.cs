@@ -83,7 +83,32 @@ public abstract class Resolver(ImmutableArray<ITypeSymbol> interfaces, Scope sco
         return result;
     }
 
-    public abstract string WriteCode(CodeWriter writer, bool fromInternal);
+    public abstract void WriteCode(CodeWriter writer,string? callerTypeName =null,string? interfaceName=null);
+
+    protected static void WriteCodeDefault(CodeWriter writer,string? callerTypeName, string interfaceName)
+    {
+        var isSingleton = callerTypeName != null;
+        writer.Append("global::Presolver.ResolveExtensions.Resolve<");
+        writer.Append(isSingleton?callerTypeName!:"TContainer");
+        writer.Append(",");
+        writer.Append(interfaceName);
+        writer.Append(isSingleton?">(c)":">(container)");
+    }
+    
+    protected void WriteDependencies(CodeWriter writer,string? callerTypeName)
+    {
+        bool first = true;
+        for (var index = 0; index < Dependencies.Length; index++)
+        {
+            if(first)
+            {
+                first = false;
+            }else  writer.Append(", ");
+            var resolver = Dependencies[index];
+            resolver.WriteCode(writer, callerTypeName, TypeDependencies[index].ToFullyQualifiedString());
+            
+        }
+    }
 
 
     public abstract void WriteDebugInfo(StringBuilder builder, int index);

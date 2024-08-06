@@ -60,10 +60,20 @@ public sealed class ByNewResolver : Resolver
 
     public override ImmutableArray<ITypeSymbol> TypeDependencies => dependencies;
 
-    public override string WriteCode(CodeWriter writer, bool fromInternal)
+    public override void WriteCode(CodeWriter writer,string? callerTypeName = null,string? interfaceName = null)
     {
-        writer.Append($"new {Type.ToFullyQualifiedString()}(");
-        return ")";
+        if (interfaceName==null)
+        {
+            writer.Append("new ");
+            writer.Append(Type.ToFullyQualifiedString());
+            writer.Append("(");
+            WriteDependencies(writer, callerTypeName);
+            writer.Append(")");
+        }
+        else
+        {
+            WriteCodeDefault(writer, callerTypeName, interfaceName);
+        }
     }
 
     public override void WriteDebugInfo(StringBuilder builder, int index)

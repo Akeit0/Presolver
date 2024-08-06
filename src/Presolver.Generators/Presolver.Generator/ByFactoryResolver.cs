@@ -44,14 +44,21 @@ public sealed class ByFactoryResolver : Resolver
 
     public override ImmutableArray<ITypeSymbol> TypeDependencies => dependencies;
 
-
-    public override string WriteCode(CodeWriter writer, bool fromInternal)
+    public override void WriteCode(CodeWriter writer,string? callerTypeName = null,string? interfaceName = null)
     {
-        if (fromInternal) writer.Append("c.");
-        writer.Append(accessor);
-        writer.Append(method.ToFullyQualifiedString());
-        writer.Append("(");
-        return ").Value";
+        if (interfaceName==null)
+        {
+            writer.Append("c.");
+            writer.Append(accessor);
+            writer.Append(method.ToFullyQualifiedString());
+            writer.Append("(");
+            WriteDependencies(writer, callerTypeName);
+            writer.Append(").Value");
+        }
+        else
+        {
+            WriteCodeDefault(writer, callerTypeName, interfaceName);
+        }
     }
 
     public override void WriteDebugInfo(StringBuilder builder, int index)

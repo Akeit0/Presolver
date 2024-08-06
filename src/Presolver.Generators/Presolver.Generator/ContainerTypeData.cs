@@ -362,10 +362,10 @@ public sealed class ContainerTypeData
                     writer.Append(typeName);
                     writer.Append(" Resolve_");
                     writer.Append(fieldTypeName);
-                    writer.Append("<TInterface>(");
-                    writer.Append("TInterface container, ");
+                    writer.Append("<TContainer>(");
+                    writer.Append("TContainer container, ");
                     writer.Append(FullName);
-                    writer.Append(" c) where TInterface :  ");
+                    writer.Append(" c) where TContainer : global::Presolver.ContainerBase,");
                     writer.AppendLine(interfaceName);
                     writer.BeginBlock();
                     writer.Append("ref var l = ref field_");
@@ -375,7 +375,7 @@ public sealed class ContainerTypeData
                     writer.BeginBlock();
 
                     writer.Append("l.Value = v = ");
-                    DependencyCodeWriter.Write(writer, node, FullName, "c");
+                    meta.WriteCode(writer);
                     writer.AppendLine(";");
 
 
@@ -434,9 +434,8 @@ public sealed class ContainerTypeData
             disposables.Clear();
 
             var fieldCount = 0;
-            foreach (var node in sortedNodes!)
+            foreach (var meta in sortedNodes!)
             {
-                var meta = node;
                 if (meta is ByFromParentResolver or ContainerSelfResolver) continue;
 
                 if (meta.Scope == Scope.Singleton)
@@ -465,14 +464,14 @@ public sealed class ContainerTypeData
                     writer.AppendLine("if (!l.TryGetValue(out var v)) lock (l.LockObject) if (!l.TryGetValue(out v))");
                     writer.BeginBlock();
                     writer.Append("l.Value = v = ");
-                    DependencyCodeWriter.Write(writer, node, FullName, "c");
+                    meta.WriteCode(writer,FullName);
                     writer.AppendLine(";");
                     writer.EndBlock();
                     writer.AppendLine("return v;");
                     writer.EndBlock();
 
                     if (presolverContext.IsDisposable(meta.Type))
-                        if (node is not ByInstanceResolver fromInstanceMeta || (fromInstanceMeta.Options & InstanceOptions.AddToContainer) != 0)
+                        if (meta is not ByInstanceResolver fromInstanceMeta || (fromInstanceMeta.Options & InstanceOptions.AddToContainer) != 0)
                             disposables.Add("field_" + fieldCount);
 
                     fieldCount++;
@@ -504,14 +503,14 @@ public sealed class ContainerTypeData
                 writer.Append(" ");
                 writer.Append("Resolve_");
                 writer.Append(meta.UsableTypeName);
-                writer.Append("<TInterface>(TInterface container,");
+                writer.Append("<TContainer>(TContainer container,");
                 writer.Append(FullName);
-                writer.Append(" c) where TInterface :  ");
+                writer.Append(" c) where TContainer : global::Presolver.ContainerBase,");  
                 writer.AppendLine(interfaceName);
                 writer.BeginBlock();
 
                 writer.Append("return ");
-                DependencyCodeWriter.Write(writer, meta, fromInternal: true);
+                meta.WriteCode(writer);
                 writer.AppendLine(";");
                 writer.EndBlock();
             }

@@ -37,14 +37,26 @@ public class ByInstanceResolver : Resolver
 
     public override ImmutableArray<ITypeSymbol> TypeDependencies => dependencies;
 
-
-    public override string WriteCode(CodeWriter writer, bool fromInternal)
+    public override void WriteCode(CodeWriter writer, string? callerTypeName = null, string? interfaceName = null)
     {
-        if (methodName is null) return "";
-        writer.Append("v.");
-        writer.Append(methodName);
-        writer.Append("(");
-        return ")";
+        if (interfaceName == null)
+        {
+            writer.Append("c.");
+            writer.Append(Name);
+            if (methodName != null)
+            {
+                writer.AppendLine(";");
+                writer.Append("v.");
+                writer.Append(methodName);
+                writer.Append("(");
+                WriteDependencies(writer, callerTypeName);
+                writer.Append(")");
+            }
+        }
+        else
+        {
+            WriteCodeDefault(writer, callerTypeName, interfaceName);
+        }
     }
 
     public override void WriteDebugInfo(StringBuilder builder, int index)

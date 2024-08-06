@@ -36,29 +36,36 @@ public sealed class ByFromParentResolver : Resolver
         return base.Resolve(dictionary, parentReference);
     }
 
-    public override string WriteCode(CodeWriter writer, bool fromInternal)
+    public override void WriteCode(CodeWriter writer, string? callerTypeName, string? interfaceName)
     {
-        UsableTypeName = parent.UsableTypeName;
-        if (Scope != Scope.Scoped)
+        if (interfaceName == null)
         {
-            if (fromInternal) writer.Append("c.");
-            for (var d = 0; d < Depth; d++) writer.Append("Parent.");
+            if (Scope != Scope.Scoped)
+            {
+                writer.Append("c.");
+                for (var d = 0; d < Depth; d++) writer.Append("Parent.");
 
-            writer.Append("__internalContainer.Resolve_");
-            writer.Append(UsableTypeName);
+                writer.Append("__internalContainer.Resolve_");
+                writer.Append(UsableTypeName);
+                
+            }
+            else
+            {
+                 writer.Append("c.");
+                writer.Append("__internalScoped.");
+                for (var d = 0; d < Depth; d++) writer.Append("Parent.");
+                writer.Append("Resolve_");
+                writer.Append(UsableTypeName);
+            }
+
             writer.Append("(");
+            WriteDependencies(writer, callerTypeName);
+            writer.Append(")");
         }
         else
         {
-            if (fromInternal) writer.Append("c.");
-            writer.Append("__internalScoped.");
-            for (var d = 0; d < Depth; d++) writer.Append("Parent.");
-            writer.Append("Resolve_");
-            writer.Append(UsableTypeName);
-            writer.Append("(");
+            WriteCodeDefault(writer, callerTypeName, interfaceName);
         }
-
-        return ")";
     }
 
     public override void WriteDebugInfo(StringBuilder builder, int index)

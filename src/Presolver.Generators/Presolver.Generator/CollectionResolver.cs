@@ -22,12 +22,25 @@ public class CollectionResolver(ITypeSymbol collectionType, ImmutableArray<IType
         return list.Concat(parentMetas).ToArray();
     }
 
-    public override string WriteCode(CodeWriter writer, bool fromInternal)
+    public override void WriteCode(CodeWriter writer,string? callerTypeName,string? interfaceName)
     {
-        writer.Append("new ");
-        writer.Append(ElementType.ToFullyQualifiedString());
-        writer.Append("[]{");
-        return "}";
+        if (interfaceName==null)
+        {
+            writer.Append("new ");
+            writer.Append(ElementType.ToFullyQualifiedString());
+            writer.Append("[]{");
+            WriteDependencies(writer, callerTypeName);
+            writer.Append("}");
+        }
+        else
+        {
+            var isSingleton = callerTypeName != null;
+            writer.Append("global::Presolver.ResolveExtensions.ResolveAll<");
+            writer.Append(isSingleton?callerTypeName!:"TContainer");
+            writer.Append(",");
+            writer.Append(ElementType.ToFullyQualifiedString());
+            writer.Append(isSingleton?">(c)":">(container)");
+        }
     }
 
     public override void WriteDebugInfo(StringBuilder builder, int index)

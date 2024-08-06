@@ -12,10 +12,10 @@ public sealed class ContainerSelfResolver(ITypeSymbol containerBaseType) : Resol
 {
     public override ITypeSymbol Type { get; } = containerBaseType;
 
-    public override string WriteCode(CodeWriter writer, bool fromInternal)
+
+    public override void WriteCode(CodeWriter writer, string? callerTypeName = null, string? interfaceName = null)
     {
-        writer.Append(fromInternal ? "c" : "this");
-        return "";
+        writer.Append(callerTypeName==null?"container":"c");
     }
 
     public override void WriteDebugInfo(StringBuilder builder, int index)
