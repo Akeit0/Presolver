@@ -55,7 +55,7 @@ internal class PresolverGenerator : IIncrementalGenerator
         var provider = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 context,
-                "Presolver.GenerateContainerAttribute",
+                "Presolver.GenerateResolverAttribute",
                 static (node, cancellation) => node is ClassDeclarationSyntax,
                 static (context, cancellation) => context)
             .Combine(context.CompilationProvider)

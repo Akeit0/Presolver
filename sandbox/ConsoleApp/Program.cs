@@ -54,7 +54,7 @@ public partial class InstanceD(string name) : IDisposable
     }
 }
 
-[GenerateContainer]
+[GenerateResolver]
 public sealed partial class Container : ContainerBase, IScoped<IAInterface, A>, ITransient<B, B>
 {
     [Factory] Transient<int> GetInt() => 1;
@@ -62,7 +62,7 @@ public sealed partial class Container : ContainerBase, IScoped<IAInterface, A>, 
 }
 
 
-[GenerateContainer]
+[GenerateResolver]
 public sealed partial class ChildContainer(Container c, InstanceD d) : ChildContainer<Container>(c), ISingleton<C>
 {
     [Factory] Transient<int> GetInt() => 2;

@@ -32,7 +32,7 @@ public class Analyzer : DiagnosticAnalyzer
 
             if (declaredSymbol is null) return;
             var attributes = declaredSymbol.GetAttributes();
-            if (attributes.Any(x => x.AttributeClass?.OriginalDefinition.MetadataName is "GenerateContainerAttribute" or "GenerateContainer"))
+            if (attributes.Any(x => x.AttributeClass?.OriginalDefinition.MetadataName is "GenerateResolverAttribute" or "GenerateResolver"))
             {
                 if (!typeDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
                 {
