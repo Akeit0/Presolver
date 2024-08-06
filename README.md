@@ -36,7 +36,7 @@ var b = container.Resolve<ServiceB>();
 //var a2 = container.Resolve<ServiceA>();//Compile error
 ```
 
-To create a child container, you can define a child container class which derives from the parent container class.
+To create a child container, you can define a child container class which derives  the `ChildContainer<parent container class>`.
 (By the way, I really like the primary constructor feature of C# 12.)
 ```csharp
 [GenerateResolver]
@@ -55,10 +55,10 @@ var scope = container.CreateScope();
   Create a new instance every time it is resolved.
 - Singleton  
   Create a single instance and reuse it every time it is resolved.  
-  Dispose the instance when the container is disposed.
+  The instance will be disposed when the container is disposed.
 - Scoped  
   Create a single instance per scope and reuse it within the same scope.  
-  Dispose the instance when the container is disposed.
+  The instance will be disposed when the container is disposed.
 ## Registering Services
 
 ### Constructors
