@@ -8,7 +8,7 @@ namespace Presolver.Generator;
 
 internal static class DiagnosticDescriptors
 {
-    const string Category = "Presolver.Generator.Roslyn3";
+    const string Category = "Presolver.Generator.Roslyn";
 
     public static readonly DiagnosticDescriptor UnexpectedErrorDescriptor = new(
         "PRESOLVER001",
