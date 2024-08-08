@@ -1,6 +1,6 @@
 ﻿namespace Presolver;
 
-public abstract class ChildContainer<T> : ContainerBase, IChildContainer where T : ContainerBase
+public abstract class ChildContainer<T> : ContainerBase where T : ContainerBase,IUserDeclaredContainer
 {
     protected ChildContainer(T parent)
     {
@@ -14,6 +14,4 @@ public abstract class ChildContainer<T> : ContainerBase, IChildContainer where T
     }
 
     public T Parent { get; }
-
-    ContainerBase IChildContainer.Parent => Parent;
 }

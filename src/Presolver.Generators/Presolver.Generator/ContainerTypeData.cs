@@ -204,7 +204,7 @@ public sealed class ContainerTypeData
         }
         catch (Exception e)
         {
-            Exceptions.Add(e);;
+            Exceptions.Add(e);
         }
     }
 
@@ -291,7 +291,7 @@ public sealed class ContainerTypeData
         writer.Append("partial class ");
         writer.Append(ContainerType.NameWithGenerics());
         var interfaceName = ContainerType.ToFullyQualifiedString() + ".IInterface";
-        writer.Append(" : ");
+        writer.Append(" : Presolver.IUserDeclaredContainer, ");
         writer.AppendLine(interfaceName);
         writer.BeginBlock();
         writer.Append("public interface IInterface");
@@ -594,6 +594,7 @@ public sealed class ContainerTypeData
                 Append(typeName);
                 AppendLine(">.Resolve()");
                 BeginBlock();
+                AppendLine("ThrowIfDisposed();");
                 Append("return ");
 
                 static void Add(CodeWriter writer, CodeWriter subWriter, Resolver meta, int depth)
@@ -629,6 +630,7 @@ public sealed class ContainerTypeData
                 Append(typeName);
                 AppendLine("> list, bool includeParentSingletons)");
                 BeginBlock();
+                AppendLine("ThrowIfDisposed();");
                 var d = InterfaceToCollectionMethod[interfaceType];
                 foreach (var m in d.Dependencies)
                     if (m.Scope == Scope.Singleton)

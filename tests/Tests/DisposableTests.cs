@@ -75,6 +75,8 @@ namespace Presolver.Tests
             Assert.That(set.Count, Is.EqualTo(0));
             Assert.True(b.IsDisposed);
             Assert.False(c.IsDisposed);
+            
+            Assert.Throws<ObjectDisposedException>(()=>disposableTestsContainer.Resolve<IDisposable>());
         }
     }
 }

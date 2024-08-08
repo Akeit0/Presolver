@@ -1,5 +1,9 @@
 ﻿namespace Presolver;
 
+
+
+
+
 public abstract class ContainerBase : IDisposable
 {
     readonly CancellationTokenSource cancellationTokenSource = new();
@@ -22,7 +26,6 @@ public abstract class ContainerBase : IDisposable
 
             IsDisposed = true;
             DisposeFields();
-            //InternalContainer?.Dispose();
             foreach (var disposable in disposables) disposable?.Dispose();
 
             disposables.Clear();
