@@ -280,6 +280,7 @@ public sealed class ContainerTypeData
     public void Write(CodeWriter writer, CodeWriter scopedWriter)
     {
         writer.AppendLine("#pragma warning disable CS1998");
+        writer.AppendLine("#pragma warning disable CS8600");
         if (ContainerType.ContainingNamespace is { IsGlobalNamespace: false })
         {
             writer.Append("namespace ");
@@ -363,8 +364,6 @@ public sealed class ContainerTypeData
                     writer.Append(" Resolve_");
                     writer.Append(fieldTypeName);
                     writer.Append("<TContainer>(TContainer container)where TContainer : global::Presolver.ContainerBase, ");
-                   // writer.Append(FullName);
-                   // writer.Append(" c) where TContainer : global::Presolver.ContainerBase,");
                     writer.AppendLine(interfaceName);
                     writer.BeginBlock();
                     writer.Append("ref var l = ref field_");
@@ -618,20 +617,6 @@ public sealed class ContainerTypeData
                     Append("Resolve_");
                     Append(meta.UsableTypeName);
                     Append("(this)");
-                    // if (depth == 0)
-                    // {
-                    //     Append("(this)");
-                    //     subWriter.Append("(this,this.Parent)");
-                    // }
-                    // else
-                    // {
-                    //     Append("(this,this");
-                    //     for (var d = 0; d < depth; d++) Append(".Parent");
-                    //
-                    //     subWriter.Append(".Parent");
-                    //
-                    //     Append(")");
-                    // }
                 }
 
                 Add(writer, scopedWriter, pair.Value, depth);
@@ -750,6 +735,7 @@ public sealed class ContainerTypeData
     public void WriteFallBack(CodeWriter writer, CodeWriter scopedWriter)
     {
         writer.AppendLine("#pragma warning disable CS1998");
+        writer.AppendLine("#pragma warning disable CS8600");
         if (ContainerType.ContainingNamespace is { IsGlobalNamespace: false })
         {
             writer.Append("namespace ");
@@ -868,10 +854,6 @@ public sealed class ContainerTypeData
             container = container.Parent;
         }
 
-        // AppendLine("protected override void DisposeFields()");
-        // BeginBlock();
-        // AppendLine("__internalScoped.Dispose();");
-        // EndBlock();
         {
             writer.AppendLine("public ChildScope CreateScope()=> new ChildScope(this);");
             writer.Append("public sealed class ChildScope:global::Presolver.ChildContainer<");
