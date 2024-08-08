@@ -1,4 +1,5 @@
-﻿using Presolver;
+﻿
+using Presolver;
 
 using var container = new Container();
 var d = new InstanceD("SomeName");
@@ -67,7 +68,7 @@ public sealed partial class ChildContainer(Container c, InstanceD d) : ChildCont
 
     [Instance(InstanceOptions.Inject | InstanceOptions.AddToContainer)]
     Singleton<InstanceD> InstanceD => d;
-    
+   // protected override Presolver.IInternalContainer InternalContainer => __internalContainer??=new __InternalContainer(this);
 }
 
 
@@ -97,6 +98,8 @@ partial class InstanceD
     }
 }
 
+
+interface IModuleAB<TScope> : ISingleton<IAInterface, A> ,IService<B,TScope>where TScope : struct, IScope;
 partial record B
 {
     public override string ToString()
