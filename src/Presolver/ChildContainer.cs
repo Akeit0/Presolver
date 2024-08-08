@@ -4,8 +4,12 @@ public abstract class ChildContainer<T> : ContainerBase, IChildContainer where T
 {
     protected ChildContainer(T parent)
     {
+        
+        
         Parent = parent;
-        // Console.WriteLine("new ChildContainer "+GetType()+" "+parent);
+        
+        // ReSharper disable once VirtualMemberCallInConstructor
+        InternalContainer?.SetParent(GetInternalContainer(parent)!);
         parent.AddDisposable(this);
     }
 

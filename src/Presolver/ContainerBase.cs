@@ -23,7 +23,6 @@ public abstract class ContainerBase : IDisposable
             IsDisposed = true;
             DisposeFields();
             //InternalContainer?.Dispose();
-            //Console.WriteLine("Dispose" +InternalContainer);
             foreach (var disposable in disposables) disposable?.Dispose();
 
             disposables.Clear();
@@ -33,17 +32,18 @@ public abstract class ContainerBase : IDisposable
         }
     }
 
-    //protected abstract IInternalContainer? InternalContainer { get; } 
+    protected abstract IInternalContainer? InternalContainer { get; }
 
+    protected ContainerBase()
+    {
+        // ReSharper disable once VirtualMemberCallInConstructor
+        InternalContainer?.Initialize(this);
+    }
 
-    // protected ContainerBase()
-    // {
-    //     // ReSharper disable once VirtualMemberCallInConstructor
-    //     InternalContainer?.Initialize(this);
-    //     //Console.WriteLine(GetType()+" "+InternalContainer.GetType());
-    // }
-
-    //protected object ParentResolver;
+    protected static IInternalContainer? GetInternalContainer(ContainerBase? container)
+    {
+        return container?.InternalContainer;
+    }
 
     protected abstract void DisposeFields();
 

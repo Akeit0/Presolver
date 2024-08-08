@@ -330,7 +330,7 @@ public sealed class ContainerTypeData
         List<string> fieldTypes = [];
         {
             writer.AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
-            writer.AppendLine("public __InternalScopedContainer __internalScoped = new (0);");
+            writer.AppendLine("__InternalScopedContainer __internalScoped = new (0);");
             writer.AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
             writer.AppendLine("public struct __InternalScopedContainer");
             writer.BeginBlock();
@@ -362,10 +362,9 @@ public sealed class ContainerTypeData
                     writer.Append(typeName);
                     writer.Append(" Resolve_");
                     writer.Append(fieldTypeName);
-                    writer.Append("<TContainer>(");
-                    writer.Append("TContainer container, ");
-                    writer.Append(FullName);
-                    writer.Append(" c) where TContainer : global::Presolver.ContainerBase,");
+                    writer.Append("<TContainer>(TContainer container)where TContainer : global::Presolver.ContainerBase, ");
+                   // writer.Append(FullName);
+                   // writer.Append(" c) where TContainer : global::Presolver.ContainerBase,");
                     writer.AppendLine(interfaceName);
                     writer.BeginBlock();
                     writer.Append("ref var l = ref field_");
@@ -425,60 +424,79 @@ public sealed class ContainerTypeData
         {
             writer.AppendLine("[global::System.ComponentModel. EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
 
-            writer.AppendLine("public __InternalContainer __internalContainer = new (0);");
+            writer.AppendLine("__InternalContainer __internalContainer;");
 
             writer.AppendLine("[global::System.ComponentModel. EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
-            writer.AppendLine("public struct __InternalContainer");
+            writer.AppendLine("public class __InternalContainer:Presolver.IInternalContainer");
             writer.BeginBlock();
 
             disposables.Clear();
 
+            writer.Append(FullName);
+            writer.AppendLine("  c;");
+            if (Parent != null)
+            {
+                writer.Append("public ");
+                writer.Append(Parent.FullName);
+                writer.AppendLine(".__InternalContainer Parent;");
+            }
+            writer.AppendLine("public void Initialize(Presolver.ContainerBase container)");
+            writer.BeginBlock();
+            writer.Append("c = (");
+            writer.Append(FullName);
+            writer.AppendLine(")container;");
+            writer.EndBlock();
+            writer.AppendLine("public void SetParent(Presolver.IInternalContainer parent)");
+            writer.BeginBlock();
+            if(Parent!=null)
+            {
+                writer.Append("Parent = (");
+                writer.Append(Parent.FullName);
+                writer.AppendLine(".__InternalContainer)parent;");
+            }
+            writer.EndBlock();
             var fieldCount = 0;
             foreach (var meta in sortedNodes!)
             {
                 if (meta is ByFromParentResolver or ContainerSelfResolver) continue;
 
-                if (meta.Scope == Scope.Singleton)
-                {
-                    var typeName = meta.Type.ToFullyQualifiedString();
-                    fieldTypes.Add(typeName);
-                    var fieldTypeName = meta.UsableTypeName;
-                    writer.Append("Presolver.ManualLazy<");
-                    writer.Append(typeName);
-                    writer.Append("> ");
-                    writer.Append("field_");
-                    writer.Append(fieldCount);
-                    writer.AppendLine(";");
-                    writer.Append("public ");
-                    writer.Append(typeName);
-                    writer.Append(" Resolve_");
-                    writer.Append(fieldTypeName);
-                    writer.Append("(object container, ");
-                    writer.Append(FullName);
-                    writer.AppendLine(" c)");
+                if (meta.Scope != Scope.Singleton) continue;
+                var typeName = meta.Type.ToFullyQualifiedString();
+                fieldTypes.Add(typeName);
+                var fieldTypeName = meta.UsableTypeName;
+                writer.Append("Presolver.ManualLazy<");
+                writer.Append(typeName);
+                writer.Append("> ");
+                writer.Append("field_");
+                writer.Append(fieldCount);
+                writer.AppendLine(";");
+                writer.Append("public ");
+                writer.Append(typeName);
+                writer.Append(" Resolve_");
+                writer.Append(fieldTypeName);
+                writer.AppendLine("(object _)");
 
-                    writer.BeginBlock();
-                    writer.Append("ref var l = ref field_");
-                    writer.Append(fieldCount);
-                    writer.AppendLine(";");
-                    writer.AppendLine("if (!l.TryGetValue(out var v)) lock (l.LockObject) if (!l.TryGetValue(out v))");
-                    writer.BeginBlock();
-                    writer.Append("l.Value = v = ");
-                    meta.WriteCode(writer,FullName);
-                    writer.AppendLine(";");
-                    writer.EndBlock();
-                    writer.AppendLine("return v;");
-                    writer.EndBlock();
+                writer.BeginBlock();
+                writer.Append("ref var l = ref field_");
+                writer.Append(fieldCount);
+                writer.AppendLine(";");
+                writer.AppendLine("if (!l.TryGetValue(out var v)) lock (l.LockObject) if (!l.TryGetValue(out v))");
+                writer.BeginBlock();
+                writer.Append("l.Value = v = ");
+                meta.WriteCode(writer,FullName);
+                writer.AppendLine(";");
+                writer.EndBlock();
+                writer.AppendLine("return v;");
+                writer.EndBlock();
 
-                    if (presolverContext.IsDisposable(meta.Type))
-                        if (meta is not ByInstanceResolver fromInstanceMeta || (fromInstanceMeta.Options & InstanceOptions.AddToContainer) != 0)
-                            disposables.Add("field_" + fieldCount);
+                if (presolverContext.IsDisposable(meta.Type))
+                    if (meta is not ByInstanceResolver fromInstanceMeta || (fromInstanceMeta.Options & InstanceOptions.AddToContainer) != 0)
+                        disposables.Add("field_" + fieldCount);
 
-                    fieldCount++;
-                }
+                fieldCount++;
             }
 
-            writer.Append("public __InternalContainer(int dummy)");
+            writer.Append("public __InternalContainer()");
             writer.BeginBlock();
 
             for (var index = 0; index < fieldTypes.Count; index++)
@@ -492,6 +510,7 @@ public sealed class ContainerTypeData
             }
 
             writer.EndBlock();
+            
 
             foreach (var meta in sortedNodes!)
             {
@@ -503,9 +522,7 @@ public sealed class ContainerTypeData
                 writer.Append(" ");
                 writer.Append("Resolve_");
                 writer.Append(meta.UsableTypeName);
-                writer.Append("<TContainer>(TContainer container,");
-                writer.Append(FullName);
-                writer.Append(" c) where TContainer : global::Presolver.ContainerBase,");  
+                writer.Append("<TContainer>(TContainer container) where TContainer : global::Presolver.ContainerBase,");
                 writer.AppendLine(interfaceName);
                 writer.BeginBlock();
 
@@ -560,7 +577,8 @@ public sealed class ContainerTypeData
             writer.EndBlock();
             scopedWriter.EndBlock();
         }
-
+        writer.AppendLine("protected override Presolver.IInternalContainer InternalContainer => __internalContainer ??=new ();");
+        scopedWriter.AppendLine("protected override Presolver.IInternalContainer InternalContainer => null;");
         var container = this;
         while (container != null)
         {
@@ -589,27 +607,31 @@ public sealed class ContainerTypeData
 
                     if (meta.Scope == Scope.Scoped) Append("__internalScoped.");
                     else
+                    {
                         subWriter.Append("Parent.");
+                        Append("__internalContainer.");
+                      
+                    }
 
                     for (var d = 0; d < depth; d++) Append("Parent.");
-
-                    if (meta.Scope != Scope.Scoped) Append("__internalContainer.");
+                    
                     Append("Resolve_");
                     Append(meta.UsableTypeName);
-                    if (depth == 0)
-                    {
-                        writer.Append("(this,this)");
-                        subWriter.Append("(this,this.Parent)");
-                    }
-                    else
-                    {
-                        Append("(this,this");
-                        for (var d = 0; d < depth; d++) Append(".Parent");
-
-                        subWriter.Append(".Parent");
-
-                        Append(")");
-                    }
+                    Append("(this)");
+                    // if (depth == 0)
+                    // {
+                    //     Append("(this)");
+                    //     subWriter.Append("(this,this.Parent)");
+                    // }
+                    // else
+                    // {
+                    //     Append("(this,this");
+                    //     for (var d = 0; d < depth; d++) Append(".Parent");
+                    //
+                    //     subWriter.Append(".Parent");
+                    //
+                    //     Append(")");
+                    // }
                 }
 
                 Add(writer, scopedWriter, pair.Value, depth);
@@ -678,7 +700,7 @@ public sealed class ContainerTypeData
             writer.BeginBlock();
             writer.EndBlock();
             writer.AppendLine("[global::System.ComponentModel. EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
-            writer.AppendLine("public __InternalScopedContainer __internalScoped= new (0);");
+            writer.AppendLine("__InternalScopedContainer __internalScoped= new (0);");
 
             writer.Append(scopedWriter);
             writer.AppendLine("");

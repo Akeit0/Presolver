@@ -1,7 +1,13 @@
 ﻿namespace Presolver;
 
+
+
+
+
 public interface IInternalContainer
 {
-    void Initialize(object container);
-    void Dispose();
+    void Initialize(ContainerBase container);
+    
+    void SetParent(IInternalContainer parent);
+    //void Dispose();
 }
