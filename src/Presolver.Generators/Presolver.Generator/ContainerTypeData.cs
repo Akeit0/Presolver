@@ -622,16 +622,13 @@ public sealed class ContainerTypeData
                 Add(writer, scopedWriter, pair.Value, depth);
                 AppendLine(";");
                 EndBlock();
+                Append("void Presolver.IResolver<");
+                Append(typeName);
+                Append(">.ResolveAll(");
                 Append("global::System.Collections.Generic.List<");
                 Append(typeName);
-                Append("> Presolver.IResolver<");
-                Append(typeName);
-                AppendLine(">.ResolveAll(bool includeParentSingletons)");
+                AppendLine("> list, bool includeParentSingletons)");
                 BeginBlock();
-                Append("var list = new global::System.Collections.Generic.List<");
-                Append(typeName);
-                AppendLine(">();");
-
                 var d = InterfaceToCollectionMethod[interfaceType];
                 foreach (var m in d.Dependencies)
                     if (m.Scope == Scope.Singleton)
@@ -657,8 +654,6 @@ public sealed class ContainerTypeData
 
                         AppendLine(");");
                     }
-
-                AppendLine("return list;");
                 EndBlock();
             }
 
@@ -838,16 +833,13 @@ public sealed class ContainerTypeData
                 Append("return default");
                 AppendLine(";");
                 EndBlock();
+                Append("void Presolver.IResolver<");
+                Append(typeName);
+                Append(">.ResolveAll(");
                 Append("global::System.Collections.Generic.List<");
                 Append(typeName);
-                Append("> Presolver.IResolver<");
-                Append(typeName);
-                AppendLine(">.ResolveAll(bool includeParentSingletons)");
+                AppendLine("> list, bool includeParentSingletons)");
                 BeginBlock();
-                Append("var list = new global::System.Collections.Generic.List<");
-                Append(typeName);
-                AppendLine(">();");
-                AppendLine("return default;");
                 EndBlock();
             }
 

@@ -6,7 +6,6 @@ public interface IResolver<T>
 {
     T Resolve();
 
-    List<T> ResolveAll(bool includeParentSingletons = true);
-
-    // void ResolveInto(List<T> list,bool withOutParentSingletons=false);
+    void ResolveAll(List<T> list,bool includeParentSingletons = true);
+    
 }

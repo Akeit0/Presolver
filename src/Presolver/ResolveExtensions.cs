@@ -23,12 +23,16 @@ public static class ResolveExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static List<T> ResolveAll<T>(this IResolver<T> resolver, bool includeParentSingletons = true)
     {
-        return resolver.ResolveAll(includeParentSingletons);
+        var list = new List<T>();
+         resolver.ResolveAll(list,includeParentSingletons);
+        return list;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static List<T> ResolveAll<TContainer, T>(this TContainer resolver, bool includeParentSingletons = true) where TContainer : IResolver<T>
     {
-        return resolver.ResolveAll(includeParentSingletons);
+        var list = new List<T>();
+        resolver.ResolveAll(list,includeParentSingletons);
+        return list;
     }
 }
