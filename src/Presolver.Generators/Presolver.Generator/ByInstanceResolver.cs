@@ -10,7 +10,7 @@ namespace Presolver.Generator;
 
 public class ByInstanceResolver : Resolver
 {
-    public ByInstanceResolver(ITypeSymbol type, string name, ImmutableArray<ITypeSymbol> interfaces, InstanceOptions options, PresolverContext refs) : base(interfaces, Scope.Singleton)
+    public ByInstanceResolver(string implementedPlace, ITypeSymbol type, string name, ImmutableArray<ITypeSymbol> interfaces, InstanceOptions options, PresolverContext refs) : base(implementedPlace,interfaces, Scope.Singleton)
     {
         Type = type;
         Name = name;
@@ -59,9 +59,13 @@ public class ByInstanceResolver : Resolver
         }
     }
 
-    public override void WriteDebugInfo(StringBuilder builder, int index)
+    public override void WriteDebugInfo(StringBuilder builder)
     {
         builder.Append("[Instance] ");
+        builder.Append(Scope.ToScopeString());
+        builder.Append(' ');
+        builder.Append(ImplementedPlace);
+        builder.Append(' ');
         if (Name.EndsWith(".Value"))
             builder.Append(Name, 0, Name.Length - 6);
         else
@@ -70,9 +74,6 @@ public class ByInstanceResolver : Resolver
         if (methodName != null)
         {
             builder.Append(".").Append(methodName);
-            builder.Append(" Parameter[");
-            builder.Append(index);
-            builder.Append("]");
         }
     }
 }

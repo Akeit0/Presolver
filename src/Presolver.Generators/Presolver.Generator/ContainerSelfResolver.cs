@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Presolver.Generator;
 
-public sealed class ContainerSelfResolver(ITypeSymbol containerBaseType) : Resolver(ImmutableArray.Create(containerBaseType), Scope.Singleton)
+public sealed class ContainerSelfResolver(string implementedPlace,ITypeSymbol containerBaseType) : Resolver(implementedPlace,ImmutableArray.Create(containerBaseType), Scope.Singleton)
 {
     public override ITypeSymbol Type { get; } = containerBaseType;
 
@@ -18,7 +18,9 @@ public sealed class ContainerSelfResolver(ITypeSymbol containerBaseType) : Resol
         writer.Append(callerTypeName==null?"container":"c");
     }
 
-    public override void WriteDebugInfo(StringBuilder builder, int index)
+    public override void WriteDebugInfo(StringBuilder builder)
     {
+        builder.Append("[Self] ");
+        builder.Append(ImplementedPlace);
     }
 }

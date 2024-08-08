@@ -13,7 +13,7 @@ public sealed class ByFromParentResolver : Resolver
 {
     readonly Resolver parent;
 
-    public ByFromParentResolver(Resolver parent, int depth) : base(parent.Interfaces, parent.Scope)
+    public ByFromParentResolver(Resolver parent, int depth) : base(parent.ImplementedPlace,parent.Interfaces, parent.Scope)
     {
         this.parent = parent;
         Depth = depth;
@@ -68,10 +68,10 @@ public sealed class ByFromParentResolver : Resolver
         }
     }
 
-    public override void WriteDebugInfo(StringBuilder builder, int index)
+    public override void WriteDebugInfo(StringBuilder builder)
     {
-        for (var d = 0; d < Depth; d++) builder.Append("Parent.");
-        builder.Append(" ");
-        parent.WriteDebugInfo(builder, index);
+        //for (var d = 0; d < Depth; d++) builder.Append("Parent.");
+        //builder.Append(" ");
+        parent.WriteDebugInfo(builder);
     }
 }

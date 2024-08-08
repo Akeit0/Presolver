@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Presolver.Generator;
 
-public class CollectionResolver(ITypeSymbol collectionType, ImmutableArray<ITypeSymbol> interfaces, List<Resolver> list, List<ByFromParentResolver> parentMetas) : Resolver(interfaces, Scope.Transient)
+public class CollectionResolver(string implementedPlace,ITypeSymbol collectionType, ImmutableArray<ITypeSymbol> interfaces, List<Resolver> list, List<ByFromParentResolver> parentMetas) : Resolver(implementedPlace,interfaces, Scope.Transient)
 {
     public override ITypeSymbol Type => collectionType;
 
@@ -43,12 +43,12 @@ public class CollectionResolver(ITypeSymbol collectionType, ImmutableArray<IType
         }
     }
 
-    public override void WriteDebugInfo(StringBuilder builder, int index)
+    public override void WriteDebugInfo(StringBuilder builder)
     {
-        builder.Append("Collection  ");
-        builder.Append(ElementType.ToFullyQualifiedString());
-        builder.Append(" [");
-        builder.Append(index);
-        builder.Append("]");
+        builder.Append("[Collection]  ");
+        builder.Append(ImplementedPlace);
+        builder.Append(" List<");
+        builder.Append(ElementType.ToFullyQualifiedString().Replace("global::",""));
+        builder.Append(">");
     }
 }

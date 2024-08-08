@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DotnetRuntime.Extensions;
 
@@ -20,6 +21,7 @@ public sealed class ContainerTypeData
     public ContainerTypeData(ITypeSymbol containerType, Dictionary<ITypeSymbol, ContainerTypeData> containers, PresolverContext presolverContext)
     {
         FullName = containerType.ToFullyQualifiedString();
+        Name = FullName.Replace("global::", "");
         this.presolverContext = presolverContext;
         ContainerType = containerType;
         containers[containerType] = this;
@@ -50,7 +52,7 @@ public sealed class ContainerTypeData
         try
         {
             var containerBaseType = presolverContext.ContainerBaseType;
-            Add(containerBaseType, new ContainerSelfResolver(containerBaseType));
+            Add(containerBaseType, new ContainerSelfResolver(Name,containerBaseType));
             {
                 var interfaces = ContainerType.AllInterfaces;
                 foreach (var i in interfaces)
@@ -64,7 +66,7 @@ public sealed class ContainerTypeData
                         var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 3)).ToImmutableArray();
 
                         var scope = typeArguments[typeArguments.Length - 1].ToScope();
-                        var resolver = new ByNewResolver((INamedTypeSymbol)typeArguments[typeArguments.Length - 2], registerInterfaces, scope, presolverContext);
+                        var resolver = new ByNewResolver(Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 2], registerInterfaces, scope, presolverContext);
                         foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                     }
             }
@@ -89,14 +91,14 @@ public sealed class ContainerTypeData
                                         var typeArguments = namedTypeSymbol.TypeArguments;
                                         var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 3)).ToImmutableArray();
                                         var scope = typeArguments[typeArguments.Length - 1].ToScope();
-                                        var resolver = new ByFactoryResolver((INamedTypeSymbol)typeArguments[typeArguments.Length - 2], "", method, registerInterfaces, scope);
+                                        var resolver = new ByFactoryResolver(Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 2], "", method, registerInterfaces, scope);
                                         foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                                     }
                                     else if (metadataName.TryGetScope(out var scope))
                                     {
                                         var typeArguments = namedTypeSymbol.TypeArguments;
                                         var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
-                                        var resolver = new ByFactoryResolver((INamedTypeSymbol)typeArguments[typeArguments.Length - 1], "", method, registerInterfaces, scope);
+                                        var resolver = new ByFactoryResolver(Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 1], "", method, registerInterfaces, scope);
                                         foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                                     }
                                 }
@@ -120,7 +122,7 @@ public sealed class ContainerTypeData
                                     var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 3)).ToImmutableArray();
                                     var scope = typeArguments[typeArguments.Length - 1].ToScope();
                                     if (scope != Scope.Singleton) continue;
-                                    var resolver = new ByInstanceResolver((INamedTypeSymbol)typeArguments[typeArguments.Length - 2], property.Name + ".Value", registerInterfaces, options, presolverContext);
+                                    var resolver = new ByInstanceResolver(Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 2], property.Name + ".Value", registerInterfaces, options, presolverContext);
                                     foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                                     continue;
                                 }
@@ -129,14 +131,14 @@ public sealed class ContainerTypeData
                                     if (scope != Scope.Singleton) continue;
                                     var typeArguments = namedTypeSymbol.TypeArguments;
                                     var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
-                                    var resolver = new ByInstanceResolver((INamedTypeSymbol)typeArguments[typeArguments.Length - 1], property.Name + ".Value", registerInterfaces, options, presolverContext);
+                                    var resolver = new ByInstanceResolver(Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 1], property.Name + ".Value", registerInterfaces, options, presolverContext);
                                     foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                                     continue;
                                 }
                             }
 
                             {
-                                var resolver = new ByInstanceResolver(returnType, property.Name, ImmutableArray.Create(returnType), options, presolverContext);
+                                var resolver = new ByInstanceResolver(Name,returnType, property.Name, ImmutableArray.Create(returnType), options, presolverContext);
                                 Add(returnType, resolver);
                             }
                         }
@@ -148,7 +150,7 @@ public sealed class ContainerTypeData
                             var type = property.Type;
                             var module = presolverContext.GetOrAddModuleData(type);
                             //if (module is null) break;
-                            module.AddResolvers(property.Name + ".", InterfaceToRegisteredMethod, presolverContext);
+                            module.AddResolvers(Name,property.Name + ".", InterfaceToRegisteredMethod, presolverContext);
                         }
                     }
                 }
@@ -182,7 +184,7 @@ public sealed class ContainerTypeData
                     }
 
                     list ??= [];
-                    var collectionResolver = new CollectionResolver(enumerableType, ImmutableArray.Create((ITypeSymbol)enumerableType), list, parentMethodList);
+                    var collectionResolver = new CollectionResolver(Name,enumerableType, ImmutableArray.Create((ITypeSymbol)enumerableType), list, parentMethodList);
                     InterfaceToCollectionMethod[pair.Key] = collectionResolver;
                     InterfaceToMethod[enumerableType] = collectionResolver;
                     InterfaceToMethod[listType] = collectionResolver;
@@ -194,7 +196,7 @@ public sealed class ContainerTypeData
                 InterfaceToMethod[pair.Key] = pair.Value[pair.Value.Count - 1];
                 var enumerableType = presolverContext.IEnumerableType.Construct(pair.Key);
                 var listType = presolverContext.IReadOnlyListType.Construct(pair.Key);
-                var collectionResolver = new CollectionResolver(enumerableType, ImmutableArray.Create((ITypeSymbol)enumerableType), pair.Value, []);
+                var collectionResolver = new CollectionResolver(Name,enumerableType, ImmutableArray.Create((ITypeSymbol)enumerableType), pair.Value, []);
                 for (var i = 0; i < pair.Value.Count; i++) pair.Value[i].Id = i;
 
                 InterfaceToCollectionMethod[pair.Key] = collectionResolver;
@@ -219,6 +221,8 @@ public sealed class ContainerTypeData
     public bool IsResolved => sortedNodes != null;
 
     public string FullName { get; }
+    
+    public string Name { get; }
 
 
     public ContainerTypeData? Parent { get; set; }
@@ -694,14 +698,17 @@ public sealed class ContainerTypeData
         {
             writer.AppendLine("/*");
             writer.AppendLine("SortedNodes:");
+            var debugBuilder = new StringBuilder();
             foreach (var n in sortedNodes)
             {
                 var meta = n;
-                writer.AppendLine(meta.Type.ToFullyQualifiedString() + " " + n.UsableTypeName);
-
+               // writer.AppendLine(meta.Type.ToFullyQualifiedString() + " " + n.UsableTypeName);
+                meta.WriteDebugInfo(debugBuilder);
+                debugBuilder.AppendLine();
                 if (meta.Dependencies.Length > 0)
                 {
-                    writer.BeginBlock();
+                    debugBuilder.AppendLine("{");
+                   
                     var typeDependencies = meta.TypeDependencies;
                     var dependencies = meta.Dependencies;
                     if (typeDependencies.Length == dependencies.Length)
@@ -709,21 +716,26 @@ public sealed class ContainerTypeData
                         var length = dependencies.Length;
                         for (var i = 0; i < length; i++)
                         {
-                            writer.Append(dependencies[i].Type.ToFullyQualifiedString());
-                            writer.Append(" As ");
-                            writer.AppendLine(typeDependencies[i].ToFullyQualifiedString());
+                            debugBuilder.Append("    ");
+                            meta.Dependencies[i].WriteDebugInfo(debugBuilder);
+                            debugBuilder.Append(" As ");
+                           debugBuilder.AppendLine(typeDependencies[i].ToFullyQualifiedString());
                         }
                     }
                     else
                     {
                         foreach (var m in meta.Dependencies)
-                            writer.AppendLine(m.UsableTypeName);
+                        {
+                            debugBuilder.Append("    ");
+                            m.WriteDebugInfo(debugBuilder);
+                            debugBuilder.AppendLine();
+                        }
                     }
 
-                    writer.EndBlock();
+                    debugBuilder.AppendLine("}");
                 }
             }
-
+            writer.AppendLine(debugBuilder.ToString());
             writer.AppendLine("*/");
             writer.AppendLine("");
         }

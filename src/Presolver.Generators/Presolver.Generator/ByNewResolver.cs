@@ -13,7 +13,7 @@ public sealed class ByNewResolver : Resolver
 {
     readonly ImmutableArray<ITypeSymbol> dependencies;
 
-    public ByNewResolver(INamedTypeSymbol type, ImmutableArray<ITypeSymbol> interfaces, Scope scope, PresolverContext refs) : base(interfaces, scope)
+    public ByNewResolver(string implementedPlace,INamedTypeSymbol type, ImmutableArray<ITypeSymbol> interfaces, Scope scope, PresolverContext refs) : base(implementedPlace,interfaces, scope)
     {
         Type = type;
         if (!refs.TypeDependencies.TryGetValue(type, out dependencies))
@@ -76,12 +76,13 @@ public sealed class ByNewResolver : Resolver
         }
     }
 
-    public override void WriteDebugInfo(StringBuilder builder, int index)
+    public override void WriteDebugInfo(StringBuilder builder)
     {
-        builder.Append("[new]");
-        builder.Append(Type.ToFullyQualifiedString());
-        builder.Append(" Parameter[");
-        builder.Append(index);
-        builder.Append("]");
+        builder.Append("[new] ");
+        builder.Append(Scope.ToScopeString());
+        builder.Append(' ');
+        builder.Append(ImplementedPlace);
+        builder.Append(' ');
+        builder.Append(Type.ToFullyQualifiedString().Replace("global::", ""));
     }
 }

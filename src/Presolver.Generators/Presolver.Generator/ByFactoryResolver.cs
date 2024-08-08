@@ -12,10 +12,11 @@ public sealed class ByFactoryResolver : Resolver
 {
     readonly string accessor;
 
-    public ByFactoryResolver(ITypeSymbol returnType, string accessor, IMethodSymbol method, ImmutableArray<ITypeSymbol> interfaces, Scope scope) : base(interfaces, scope)
+    public ByFactoryResolver(string implementedPlace,ITypeSymbol returnType, string accessor, IMethodSymbol method, ImmutableArray<ITypeSymbol> interfaces, Scope scope) : base(implementedPlace,interfaces, scope)
     {
         this.accessor = accessor;
         this.method = method;
+        methodName = method.Name;
         Type = returnType;
         var parameters = method.Parameters;
         if (parameters.Length == 0)
@@ -37,6 +38,8 @@ public sealed class ByFactoryResolver : Resolver
     }
 
     IMethodSymbol method { get; }
+    
+    string methodName { get; }
 
     public override ITypeSymbol Type { get; }
 
@@ -50,7 +53,7 @@ public sealed class ByFactoryResolver : Resolver
         {
             writer.Append("c.");
             writer.Append(accessor);
-            writer.Append(method.ToFullyQualifiedString());
+            writer.Append(methodName);
             writer.Append("(");
             WriteDependencies(writer, callerTypeName);
             writer.Append(").Value");
@@ -61,13 +64,19 @@ public sealed class ByFactoryResolver : Resolver
         }
     }
 
-    public override void WriteDebugInfo(StringBuilder builder, int index)
+    public override void WriteDebugInfo(StringBuilder builder)
     {
-        builder.Append("[Factory]");
+        builder.Append("[Factory] ");
+        builder.Append(Scope.ToScopeString());
+        builder.Append("  ");
+        builder.Append(Type.ToFullyQualifiedString().Replace("global::", ""));
+        builder.Append("  ");
+        
+        builder.Append(ImplementedPlace);
+        builder.Append(' ');
+        
         builder.Append(accessor);
-        builder.Append(method.ToFullyQualifiedString());
-        builder.Append(" Parameter[");
-        builder.Append(index);
-        builder.Append("]");
+        builder.Append(methodName);
+      
     }
 }

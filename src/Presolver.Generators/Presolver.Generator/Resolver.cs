@@ -10,8 +10,10 @@ using Microsoft.CodeAnalysis;
 
 namespace Presolver.Generator;
 
-public abstract class Resolver(ImmutableArray<ITypeSymbol> interfaces, Scope scope)
+public abstract class Resolver(string implementedPlace,ImmutableArray<ITypeSymbol> interfaces, Scope scope)
 {
+    
+    
     string? usableTypeName;
     public ReadOnlySpan<Resolver> Dependencies => dependencies;
     Resolver[]? dependencies { get; set; }
@@ -22,6 +24,7 @@ public abstract class Resolver(ImmutableArray<ITypeSymbol> interfaces, Scope sco
 
     public int? Id { get; set; }
 
+    public string ImplementedPlace { get; }=implementedPlace;
 
     public ImmutableArray<ITypeSymbol> Interfaces { get; } = interfaces;
 
@@ -73,8 +76,10 @@ public abstract class Resolver(ImmutableArray<ITypeSymbol> interfaces, Scope sco
                 }
 
                 var builder = new StringBuilder();
-                WriteDebugInfo(builder, index);
-                builder.Append(" -> ");
+                WriteDebugInfo(builder);
+                builder.Append(" [");
+                builder.Append(index);
+                builder.Append("] -> ");
                 builder.Append(dependency.ToFullyQualifiedString());
                 throw new UnregisteredTypeException(builder.ToString());
             }
@@ -111,5 +116,5 @@ public abstract class Resolver(ImmutableArray<ITypeSymbol> interfaces, Scope sco
     }
 
 
-    public abstract void WriteDebugInfo(StringBuilder builder, int index);
+    public abstract void WriteDebugInfo(StringBuilder builder);
 }

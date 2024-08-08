@@ -30,7 +30,10 @@ public class CircularDependencyException(string message) : PresolverGeneratorExc
             else
                 builder.Append(" -> ");
 
-            node.WriteDebugInfo(builder, index);
+            node.WriteDebugInfo(builder);
+            builder.Append("[");
+            builder.Append(index);
+            builder.Append("]");
         }
 
         return new(builder.ToString());
