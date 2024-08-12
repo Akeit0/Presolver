@@ -4,9 +4,9 @@ Inspired by  [stronginject](https://github.com/YairHalberstadt/stronginject).
 
 
 ## NuGet
-https://www.nuget.org/packages/Presolver/0.2.0
+https://www.nuget.org/packages/Presolver
 ```
-dotnet add package Presolver --version 0.2.0
+dotnet add package Presolver
 ```
 
 
