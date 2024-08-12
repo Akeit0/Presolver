@@ -10,17 +10,17 @@ namespace Presolver.Tests
     {
         [Factory] Transient<string> GetString()=> "Hello";
         
-        [Factory] Scoped<A> GetA(string s)=>new A(this,s);
+        [Factory] Scoped<A> GetA(ContainerBase c,string s)=>new A(c,s);
     }
     [GenerateResolver]
-    public sealed partial class ScopeTestChildContainer:ChildContainer<ScopeTestContainer>,ITransient<A>
+    public sealed partial class ScopeTestChildContainer:ChildContainer<ScopeTestContainer>//,ITransient<A>
     {
         public ScopeTestChildContainer(ScopeTestContainer parent) : base(parent)
         {
         }
         
         [Factory] Transient<string> GetString()=> "World";
-
+        [Factory] Transient<A> GetA(string s)=>new A(this,s);
       
     }
     
@@ -61,7 +61,7 @@ namespace Presolver.Tests
           
             Assert.True(b2.SortedById[0] is {ContainerType:nameof(ScopeTestContainer),Value:"Hello"});
             Assert.True(b2.SortedById[1] is {ContainerType:nameof(ScopeTestChildContainer),Value:"World"});
-            Assert.True(b2.SortedById[2] is {ContainerType:nameof(ScopeTestChildContainer),Value:"World"});
+           Assert.True(b2.SortedById[2] is {ContainerType:nameof(ScopeTestChildContainer),Value:"World"});
             
             Assert.True(b2.SortedById.Select(x=>x.Id).SequenceEqual(new[]{0,2,3}));
             
