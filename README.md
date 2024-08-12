@@ -64,10 +64,10 @@ var scope = container.CreateScope();
 ### Constructors
 If you want to use constructor injection, you can add the interfaces.
 ```csharp
-//Register class A as IService with scoped lifetime.
-class Container :  IService<IServiceA,A,IScope.Scoped>;
+//Register class A as A and IService with scoped lifetime.
+class Container :  IService<IServiceA,A,A,IScope.Scoped>;
 //or
-class Container :  IScoped<IServiceA,A>;
+class Container :  IScoped<IServiceA,A,A>;
 ```
 ### Factory methods
 ```csharp
