@@ -22,6 +22,7 @@ public sealed class ContainerTypeData
     {
         FullName = containerType.ToFullyQualifiedString();
         Name = FullName.Replace("global::", "");
+        SelfName=containerType.NameWithGenerics();
         this.presolverContext = presolverContext;
         ContainerType = containerType;
         containers[containerType] = this;
@@ -222,6 +223,8 @@ public sealed class ContainerTypeData
 
     public string FullName { get; }
     
+    public string SelfName { get; }
+    
     public string Name { get; }
 
 
@@ -291,12 +294,8 @@ public sealed class ContainerTypeData
             writer.AppendLine(ContainerType.ContainingNamespace.FullName());
             writer.BeginBlock();
         }
-
-        writer.Append("partial class ");
-        writer.Append(ContainerType.NameWithGenerics());
-        var interfaceName = ContainerType.ToFullyQualifiedString() + ".IInterface";
-        writer.Append(" : Presolver.IUserDeclaredContainer, ");
-        writer.AppendLine(interfaceName);
+        
+        writer.AppendLine("partial class ",SelfName,": Presolver.IUserDeclaredContainer, ",SelfName,".IInterface"); 
         writer.BeginBlock();
         writer.Append("public interface IInterface");
 
@@ -341,9 +340,7 @@ public sealed class ContainerTypeData
             writer.BeginBlock();
             if (Parent != null)
             {
-                writer.Append("public ");
-                writer.Append(Parent.FullName);
-                writer.AppendLine(".__InternalScopedContainer Parent;");
+                writer.AppendLine("public ",Parent.FullName,".__InternalScopedContainer Parent;");
             }
 
 
@@ -357,22 +354,11 @@ public sealed class ContainerTypeData
                     var typeName = meta.Type.ToFullyQualifiedString();
                     fieldTypes.Add(typeName);
                     var fieldTypeName = meta.UsableTypeName;
-                    writer.Append("Presolver.ManualLazy<");
-                    writer.Append(typeName);
-                    writer.Append("> ");
-                    writer.Append("field_");
-                    writer.Append(fieldCount);
-                    writer.AppendLine(";");
-                    writer.Append("public ");
-                    writer.Append(typeName);
-                    writer.Append(" Resolve_");
-                    writer.Append(fieldTypeName);
-                    writer.Append("<TContainer>(TContainer container)where TContainer : global::Presolver.ContainerBase, ");
-                    writer.AppendLine(interfaceName);
+                    var fieldName = "field_" + fieldCount;
+                    writer.AppendLine("Presolver.ManualLazy<",typeName,"> ",fieldName,";");
+                    writer.AppendLine("public ",typeName," Resolve_",fieldTypeName,"<TContainer>(TContainer container)where TContainer : global::Presolver.ContainerBase, ",SelfName,".IInterface");
                     writer.BeginBlock();
-                    writer.Append("ref var l = ref field_");
-                    writer.Append(fieldCount);
-                    writer.AppendLine(";");
+                    writer.AppendLine("ref var l = ref ",fieldName,";");
                     writer.AppendLine("if (!l.TryGetValue(out var v)) lock (l.LockObject) if (!l.TryGetValue(out v))");
                     writer.BeginBlock();
 
@@ -387,7 +373,7 @@ public sealed class ContainerTypeData
 
                     if (presolverContext.IsDisposable(meta.Type))
                         if (node is not ByInstanceResolver fromInstanceMeta || (fromInstanceMeta.Options & InstanceOptions.AddToContainer) != 0)
-                            disposables.Add("field_" + fieldCount);
+                            disposables.Add(fieldName);
 
                     fieldCount++;
                 }
@@ -400,11 +386,7 @@ public sealed class ContainerTypeData
             for (var index = 0; index < fieldTypes.Count; index++)
             {
                 var t = fieldTypes[index];
-                writer.Append("field_");
-                writer.Append(index.ToString());
-                writer.Append(" = Presolver.ManualLazy.Create<");
-                writer.Append(t);
-                writer.AppendLine(">();");
+                writer.AppendLine($"field_{index} = Presolver.ManualLazy.Create<{t}>();");
             }
 
             writer.EndBlock();
@@ -415,9 +397,7 @@ public sealed class ContainerTypeData
 
             foreach (var d in disposables)
             {
-                writer.Append("global::Presolver.ManualLazy.Dispose(ref ");
-                writer.Append(d);
-                writer.AppendLine(");");
+                writer.AppendLine("global::Presolver.ManualLazy.Dispose(ref ",d,");");
             }
 
             writer.EndBlock();
@@ -439,23 +419,17 @@ public sealed class ContainerTypeData
             writer.AppendLine("  c;");
             if (Parent != null)
             {
-                writer.Append("public ");
-                writer.Append(Parent.FullName);
-                writer.AppendLine(".__InternalContainer Parent;");
+                writer.AppendLine("public ",Parent.FullName,".__InternalContainer Parent;");
             }
             writer.AppendLine("public void Initialize(Presolver.ContainerBase container)");
             writer.BeginBlock();
-            writer.Append("c = (");
-            writer.Append(FullName);
-            writer.AppendLine(")container;");
+            writer.AppendLine($"c = ({FullName})container;");
             writer.EndBlock();
             writer.AppendLine("public void SetParent(Presolver.IInternalContainer parent)");
             writer.BeginBlock();
             if(Parent!=null)
             {
-                writer.Append("Parent = (");
-                writer.Append(Parent.FullName);
-                writer.AppendLine(".__InternalContainer)parent;");
+                writer.AppendLine("Parent = (",Parent.FullName,".__InternalContainer)parent;");
             }
             writer.EndBlock();
             var fieldCount = 0;
@@ -466,23 +440,13 @@ public sealed class ContainerTypeData
                 if (meta.Scope != Scope.Singleton) continue;
                 var typeName = meta.Type.ToFullyQualifiedString();
                 fieldTypes.Add(typeName);
+                var fieldName = "field_" + fieldCount; 
                 var fieldTypeName = meta.UsableTypeName;
-                writer.Append("Presolver.ManualLazy<");
-                writer.Append(typeName);
-                writer.Append("> ");
-                writer.Append("field_");
-                writer.Append(fieldCount);
-                writer.AppendLine(";");
-                writer.Append("public ");
-                writer.Append(typeName);
-                writer.Append(" Resolve_");
-                writer.Append(fieldTypeName);
-                writer.AppendLine("(object _)");
+                writer.AppendLine($"Presolver.ManualLazy<{typeName}> {fieldName};");
+                writer.AppendLine($"public {typeName} Resolve_{fieldTypeName}(object _)");
 
                 writer.BeginBlock();
-                writer.Append("ref var l = ref field_");
-                writer.Append(fieldCount);
-                writer.AppendLine(";");
+                writer.AppendLine($"ref var l = ref {fieldName};");
                 writer.AppendLine("if (!l.TryGetValue(out var v)) lock (l.LockObject) if (!l.TryGetValue(out v))");
                 writer.BeginBlock();
                 writer.Append("l.Value = v = ");
@@ -494,7 +458,7 @@ public sealed class ContainerTypeData
 
                 if (presolverContext.IsDisposable(meta.Type))
                     if (meta is not ByInstanceResolver fromInstanceMeta || (fromInstanceMeta.Options & InstanceOptions.AddToContainer) != 0)
-                        disposables.Add("field_" + fieldCount);
+                        disposables.Add(fieldName);
 
                 fieldCount++;
             }
@@ -504,12 +468,7 @@ public sealed class ContainerTypeData
 
             for (var index = 0; index < fieldTypes.Count; index++)
             {
-                var t = fieldTypes[index];
-                writer.Append("field_");
-                writer.Append(index.ToString());
-                writer.Append(" = Presolver.ManualLazy.Create<");
-                writer.Append(t);
-                writer.AppendLine(">();");
+                writer.AppendLine($"field_{index} = Presolver.ManualLazy.Create<{fieldTypes[index]}>();");
             }
 
             writer.EndBlock();
@@ -520,13 +479,8 @@ public sealed class ContainerTypeData
                 if (meta is ByFromParentResolver or CollectionResolver) continue;
                 if (meta.Scope != Scope.Transient) continue;
                 var typeName = meta.Type.ToFullyQualifiedString();
-                writer.Append("public ");
-                writer.Append(typeName);
-                writer.Append(" ");
-                writer.Append("Resolve_");
-                writer.Append(meta.UsableTypeName);
-                writer.Append("<TContainer>(TContainer container) where TContainer : global::Presolver.ContainerBase,");
-                writer.AppendLine(interfaceName);
+                writer.AppendLine($"public {typeName} Resolve_{meta.UsableTypeName}<TContainer>(TContainer container) where TContainer : global::Presolver.ContainerBase,{SelfName}.IInterface");
+               
                 writer.BeginBlock();
 
                 writer.Append("return ");
@@ -541,9 +495,7 @@ public sealed class ContainerTypeData
 
             foreach (var d in disposables)
             {
-                writer.Append("global::Presolver.ManualLazy.Dispose(ref ");
-                writer.Append(d);
-                writer.AppendLine(");");
+                writer.AppendLine("global::Presolver.ManualLazy.Dispose(ref ",d,");");
             }
 
             writer.EndBlock();
@@ -627,12 +579,8 @@ public sealed class ContainerTypeData
                 Add(writer, scopedWriter, pair.Value, depth);
                 AppendLine(";");
                 EndBlock();
-                Append("void Presolver.IResolver<");
-                Append(typeName);
-                Append(">.ResolveAll(");
-                Append("global::System.Collections.Generic.List<");
-                Append(typeName);
-                AppendLine("> list, bool includeParentSingletons)");
+                AppendLine(/* lang=c# */ $"void Presolver.IResolver<{typeName}>.ResolveAll(global::System.Collections.Generic.List<{typeName}> list, bool includeParentSingletons)");
+               
                 BeginBlock();
                 AppendLine("ThrowIfDisposed();");
                 var d = InterfaceToCollectionMethod[interfaceType];
@@ -674,15 +622,9 @@ public sealed class ContainerTypeData
         EndBlock();
         {
             writer.AppendLine("public ChildScope CreateScope()=> new ChildScope(this);");
-            writer.Append("public sealed class ChildScope:global::Presolver.ChildContainer<");
-            writer.Append(FullName);
-            writer.Append(">, ");
-            writer.Append(FullName);
-            writer.AppendLine(".IInterface");
+            writer.AppendLine("public sealed class ChildScope:global::Presolver.ChildContainer<",FullName,">, ",FullName,".IInterface");
             writer.BeginBlock();
-            writer.Append("public ChildScope(");
-            writer.Append(FullName);
-            writer.AppendLine(" container):base(container)");
+            writer.AppendLine("public ChildScope(",FullName," container):base(container)");
             writer.BeginBlock();
             writer.EndBlock();
             writer.AppendLine("[global::System.ComponentModel. EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
@@ -747,8 +689,7 @@ public sealed class ContainerTypeData
         writer.AppendLine("#pragma warning disable CS8600");
         if (ContainerType.ContainingNamespace is { IsGlobalNamespace: false })
         {
-            writer.Append("namespace ");
-            writer.AppendLine(ContainerType.ContainingNamespace.FullName());
+            writer.AppendLine("namespace ",ContainerType.ContainingNamespace.FullName());
             writer.BeginBlock();
         }
 
@@ -758,41 +699,33 @@ public sealed class ContainerTypeData
             writer.Append(exception is PresolverGeneratorException generatorException ? generatorException.FormatedMessage : exception.Message);
             writer.AppendLine("\")]");
         }
-       
-        writer.Append("partial class ");
-        writer.Append(ContainerType.NameWithGenerics());
-        var interfaceName = ContainerType.ToFullyQualifiedString() + ".IInterface";
-        writer.Append(" : ");
-        writer.AppendLine(interfaceName);
+        writer.AppendLine($"partial class {SelfName} : Presolver.IUserDeclaredContainer, {SelfName}.IInterface");
         writer.BeginBlock();
         writer.Append("public interface IInterface");
-
-        var first = true;
-        if (Parent != null)
         {
-            writer.Append(" : ");
-            writer.Append(Parent.ContainerType.ToFullyQualifiedString());
-            writer.Append(".IInterface");
-            first = false;
-        }
-
-        foreach (var pair in InterfaceToMethod)
-        {
-            var type = pair.Key;
-            if (pair.Value is CollectionResolver) continue;
-            if (!first)
+            var first = true;
+            if (Parent != null)
             {
-                writer.Append(",");
-            }
-            else
-            {
-                writer.Append(" : ");
+                writer.Append($" : {Parent.FullName}.IInterface");
                 first = false;
             }
 
-            writer.Append(" Presolver.IResolver<");
-            writer.Append(type.ToFullyQualifiedString());
-            writer.Append(">");
+            foreach (var pair in InterfaceToMethod)
+            {
+                var type = pair.Key;
+                if (pair.Value is CollectionResolver) continue;
+                if (!first)
+                {
+                    writer.Append(",");
+                }
+                else
+                {
+                    writer.Append(" : ");
+                    first = false;
+                }
+
+                writer.Append($" Presolver.IResolver<{type.ToFullyQualifiedString()}>");
+            }
         }
 
         writer.AppendLine("");

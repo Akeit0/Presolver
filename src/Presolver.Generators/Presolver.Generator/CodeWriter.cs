@@ -76,7 +76,68 @@ public class CodeWriter
         _text.AppendLine(str);
         BeginLine();
     }
-
+    public void AppendLine(string str0,string str1)
+    {
+        _text.Append(str0);
+        _text.AppendLine(str1);
+        BeginLine();
+    }
+    public void AppendLine(string str0,string str1,string str2)
+    {
+        _text.Append(str0);
+        _text.Append(str1);
+        _text.AppendLine(str2);
+        BeginLine();
+    }
+    public void AppendLine(string str0,string str1,string str2,string str3)
+    {
+        _text.Append(str0);
+        _text.Append(str1);
+        _text.Append(str2);
+        _text.AppendLine(str3);
+        BeginLine();
+    }
+    public void AppendLine(string str0,string str1,string str2,string str3,string str4)
+    {
+        _text.Append(str0);
+        _text.Append(str1);
+        _text.Append(str2);
+        _text.Append(str3);
+        _text.AppendLine(str4);
+        BeginLine();
+    }
+    public void AppendLine(string str0,string str1,string str2,string str3,string str4,string str5)
+    {
+        _text.Append(str0);
+        _text.Append(str1);
+        _text.Append(str2);
+        _text.Append(str3);
+        _text.Append(str4);
+        _text.AppendLine(str5);
+        BeginLine();
+    }
+    public void AppendLine(string str0,string str1,string str2,string str3,string str4,string str5,string str6)
+    {
+        _text.Append(str0);
+        _text.Append(str1);
+        _text.Append(str2);
+        _text.Append(str3);
+        _text.Append(str4);
+        _text.Append(str5);
+        _text.AppendLine(str6);
+        BeginLine();
+    }
+    public void Append( SimpleInterpolatedStringHandler handler)
+    {
+        handler.AppendTo(_text);
+    }
+    
+    public void AppendLine( SimpleInterpolatedStringHandler handler)
+    {
+        handler.AppendTo(_text);
+        _text.AppendLine();
+        BeginLine();
+    }
 
     void BeginLine()
     {
@@ -95,7 +156,6 @@ public class CodeWriter
 
     public void Append(CodeWriter subIndenter)
     {
-        //Debug.Assert(subIndenter._indent == _indent);
         _text.Remove(_text.Length - Indent * 4, Indent * 4);
         _text.Append(subIndenter._text);
     }
