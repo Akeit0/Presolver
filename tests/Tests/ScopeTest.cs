@@ -6,9 +6,11 @@ using static Presolver.Tests.ScopeTest;
 namespace Presolver.Tests
 {
     [GenerateResolver]
-    public sealed partial class ScopeTestContainer:ContainerBase,ISingleton<A>,IScoped<A>,ITransient<B>
+    public sealed partial class ScopeTestContainer:ContainerBase,ISingleton<A>,ITransient<B>
     {
         [Factory] Transient<string> GetString()=> "Hello";
+        
+        [Factory] Scoped<A> GetA(string s)=>new A(this,s);
     }
     [GenerateResolver]
     public sealed partial class ScopeTestChildContainer:ChildContainer<ScopeTestContainer>,ITransient<A>

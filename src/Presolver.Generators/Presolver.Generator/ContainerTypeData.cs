@@ -356,7 +356,7 @@ public sealed class ContainerTypeData
                     var fieldTypeName = meta.UsableTypeName;
                     var fieldName = "field_" + fieldCount;
                     writer.AppendLine("Presolver.ManualLazy<",typeName,"> ",fieldName,";");
-                    writer.AppendLine("public ",typeName," Resolve_",fieldTypeName,"<TContainer>(TContainer container)where TContainer : global::Presolver.ContainerBase, ",SelfName,".IInterface");
+                    writer.AppendLine($"public {typeName} Resolve_{fieldTypeName}<TContainer>(TContainer container,{FullName} c)where TContainer : global::Presolver.ContainerBase, ",SelfName,".IInterface");
                     writer.BeginBlock();
                     writer.AppendLine("ref var l = ref ",fieldName,";");
                     writer.AppendLine("if (!l.TryGetValue(out var v)) lock (l.LockObject) if (!l.TryGetValue(out v))");
@@ -573,13 +573,22 @@ public sealed class ContainerTypeData
                     
                     Append("Resolve_");
                     Append(meta.UsableTypeName);
-                    Append("(this)");
+                    if (meta.Scope == Scope.Scoped)
+                    {
+                        Append("(this,");
+                        subWriter.Append("Parent");
+                        writer.Append("this");
+                        for (var d = 0; d < depth; d++) Append(".Parent");
+                        Append(")");
+                        
+                    }
+                    else   Append("(this)");
                 }
 
                 Add(writer, scopedWriter, pair.Value, depth);
                 AppendLine(";");
                 EndBlock();
-                AppendLine(/* lang=c# */ $"void Presolver.IResolver<{typeName}>.ResolveAll(global::System.Collections.Generic.List<{typeName}> list, bool includeParentSingletons)");
+                AppendLine($"void Presolver.IResolver<{typeName}>.ResolveAll(global::System.Collections.Generic.List<{typeName}> list, bool includeParentSingletons)");
                
                 BeginBlock();
                 AppendLine("ThrowIfDisposed();");
