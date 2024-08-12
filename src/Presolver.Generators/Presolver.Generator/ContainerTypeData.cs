@@ -99,7 +99,7 @@ public sealed class ContainerTypeData
                                     else if (metadataName.TryGetScope(out var scope))
                                     {
                                         var typeArguments = namedTypeSymbol.TypeArguments;
-                                        var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
+                                        var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 1)).ToImmutableArray();
                                         var resolver = new ByFactoryResolver(resolverId++,Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 1], "", method, registerInterfaces, scope);
                                         foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                                     }
@@ -132,7 +132,7 @@ public sealed class ContainerTypeData
                                 {
                                     if (scope != Scope.Singleton) continue;
                                     var typeArguments = namedTypeSymbol.TypeArguments;
-                                    var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
+                                    var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 1)).ToImmutableArray();
                                     var resolver = new ByInstanceResolver(resolverId++,Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 1], property.Name + ".Value", registerInterfaces, options, presolverContext);
                                     foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                                     continue;

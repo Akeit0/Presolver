@@ -36,7 +36,7 @@ public sealed class ModuleData
                             if (metadataName.StartsWith("Service"))
                             {
                                 var typeArguments = namedTypeSymbol.TypeArguments;
-                                var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 3)).ToImmutableArray();
+                                var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
                                 var scope = typeArguments[typeArguments.Length - 1].ToScope();
 
 
@@ -45,7 +45,7 @@ public sealed class ModuleData
                             else if (metadataName.TryGetScope(out var scope))
                             {
                                 var typeArguments = namedTypeSymbol.TypeArguments;
-                                var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
+                                var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 1)).ToImmutableArray();
                                 factories.Add(new((INamedTypeSymbol)typeArguments[typeArguments.Length - 1], "", method, registerInterfaces, typeArguments, scope));
                             }
                         }
@@ -66,7 +66,7 @@ public sealed class ModuleData
                         if (metadataName.StartsWith("Service"))
                         {
                             var typeArguments = namedTypeSymbol.TypeArguments;
-                            var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 3)).ToImmutableArray();
+                            var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
                             var scope = typeArguments[typeArguments.Length - 1].ToScope();
                             if (scope != Scope.Singleton) continue;
                             instances.Add(new(typeArguments[typeArguments.Length - 2], property.Name + ".Value", registerInterfaces, options));
@@ -79,7 +79,7 @@ public sealed class ModuleData
                             if (scope != Scope.Singleton) continue;
 
                             var typeArguments = namedTypeSymbol.TypeArguments;
-                            var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
+                            var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 1)).ToImmutableArray();
                             instances.Add(new(typeArguments[typeArguments.Length - 2], property.Name + ".Value", registerInterfaces, options));
 
                             continue;
