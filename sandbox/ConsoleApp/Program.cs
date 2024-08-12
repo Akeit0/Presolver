@@ -15,7 +15,7 @@ Console.WriteLine("----------------------------------");
 using var s = childContainer.CreateScope();
 Console.WriteLine(s.Resolve<B>());
 
-
+//Console.WriteLine(container.Resolve<A>());
 // B {a: {A {container:Container id:0}, A {container:Container id:1}} ,i:1}
 // B {a: {A {container:Container id:0}, A {container:Container id:2}} ,i:1}
 // ----------------------------------
@@ -54,10 +54,10 @@ public partial class InstanceD(string name) : IDisposable
 }
 
 [GenerateResolver]
-public sealed partial class Container : ContainerBase, IScoped<IAInterface, A>, ITransient<B, B>
+public sealed partial class Container : ContainerBase, IScoped<IAInterface,A>, ITransient<B, B>,IScoped<A>
 {
     [Factory] Transient<int> GetInt() => 1;
-    [Factory] Transient<IAInterface, A> GetA() => new A(this);
+    [Factory] Singleton<IAInterface, A> GetA() => new A(this);
 }
 
 

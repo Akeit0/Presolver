@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Presolver.Generator;
 
-public sealed class ContainerSelfResolver(string implementedPlace,ITypeSymbol containerBaseType) : Resolver(implementedPlace,ImmutableArray.Create(containerBaseType), Scope.Singleton)
+public sealed class ContainerSelfResolver(int id,string implementedPlace,ITypeSymbol containerBaseType) : Resolver(id,implementedPlace,ImmutableArray.Create(containerBaseType), Scope.Singleton)
 {
     public override ITypeSymbol Type { get; } = containerBaseType;
 

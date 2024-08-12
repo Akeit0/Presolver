@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Presolver.Generator;
 
-public abstract class Resolver(string implementedPlace,ImmutableArray<ITypeSymbol> interfaces, Scope scope)
+public abstract class Resolver(int id,string implementedPlace,ImmutableArray<ITypeSymbol> interfaces, Scope scope)
 {
     
     
@@ -22,7 +22,7 @@ public abstract class Resolver(string implementedPlace,ImmutableArray<ITypeSymbo
     public Scope Scope { get; } = scope;
 
 
-    public int? Id { get; set; }
+    public int Id => id;
 
     public string ImplementedPlace { get; }=implementedPlace;
 
@@ -38,7 +38,6 @@ public abstract class Resolver(string implementedPlace,ImmutableArray<ITypeSymbo
         get
         {
             if (usableTypeName != null) return usableTypeName;
-            if (Id.HasValue) return usableTypeName = Type.ToUsableName() + Id.Value;
             return usableTypeName = Type.ToUsableName();
         }
         protected set => usableTypeName = value;

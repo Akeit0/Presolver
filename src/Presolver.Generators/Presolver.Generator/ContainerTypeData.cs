@@ -53,7 +53,8 @@ public sealed class ContainerTypeData
         try
         {
             var containerBaseType = presolverContext.ContainerBaseType;
-            Add(containerBaseType, new ContainerSelfResolver(Name,containerBaseType));
+            var resolverId = 0;
+            Add(containerBaseType, new ContainerSelfResolver(resolverId++,Name,containerBaseType));
             {
                 var interfaces = ContainerType.AllInterfaces;
                 foreach (var i in interfaces)
@@ -64,10 +65,10 @@ public sealed class ContainerTypeData
                         if (!metadataName.StartsWith("IService")) continue;
 
                         var typeArguments = namedTypeSymbol.TypeArguments;
-                        var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 3)).ToImmutableArray();
+                        var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
 
                         var scope = typeArguments[typeArguments.Length - 1].ToScope();
-                        var resolver = new ByNewResolver(Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 2], registerInterfaces, scope, presolverContext);
+                        var resolver = new ByNewResolver(resolverId++,Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 2], registerInterfaces, scope, presolverContext);
                         foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                     }
             }
@@ -90,16 +91,16 @@ public sealed class ContainerTypeData
                                     if (metadataName.StartsWith("Service"))
                                     {
                                         var typeArguments = namedTypeSymbol.TypeArguments;
-                                        var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 3)).ToImmutableArray();
+                                        var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
                                         var scope = typeArguments[typeArguments.Length - 1].ToScope();
-                                        var resolver = new ByFactoryResolver(Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 2], "", method, registerInterfaces, scope);
+                                        var resolver = new ByFactoryResolver(resolverId++,Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 2], "", method, registerInterfaces, scope);
                                         foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                                     }
                                     else if (metadataName.TryGetScope(out var scope))
                                     {
                                         var typeArguments = namedTypeSymbol.TypeArguments;
                                         var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
-                                        var resolver = new ByFactoryResolver(Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 1], "", method, registerInterfaces, scope);
+                                        var resolver = new ByFactoryResolver(resolverId++,Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 1], "", method, registerInterfaces, scope);
                                         foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                                     }
                                 }
@@ -120,10 +121,10 @@ public sealed class ContainerTypeData
                                 if (metadataName.StartsWith("Service"))
                                 {
                                     var typeArguments = namedTypeSymbol.TypeArguments;
-                                    var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 3)).ToImmutableArray();
+                                    var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
                                     var scope = typeArguments[typeArguments.Length - 1].ToScope();
                                     if (scope != Scope.Singleton) continue;
-                                    var resolver = new ByInstanceResolver(Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 2], property.Name + ".Value", registerInterfaces, options, presolverContext);
+                                    var resolver = new ByInstanceResolver(resolverId++,Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 2], property.Name + ".Value", registerInterfaces, options, presolverContext);
                                     foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                                     continue;
                                 }
@@ -132,14 +133,14 @@ public sealed class ContainerTypeData
                                     if (scope != Scope.Singleton) continue;
                                     var typeArguments = namedTypeSymbol.TypeArguments;
                                     var registerInterfaces = typeArguments.AsSpan().Slice(0, Math.Max(1, typeArguments.Length - 2)).ToImmutableArray();
-                                    var resolver = new ByInstanceResolver(Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 1], property.Name + ".Value", registerInterfaces, options, presolverContext);
+                                    var resolver = new ByInstanceResolver(resolverId++,Name,(INamedTypeSymbol)typeArguments[typeArguments.Length - 1], property.Name + ".Value", registerInterfaces, options, presolverContext);
                                     foreach (var registerInterface in registerInterfaces) Add(registerInterface, resolver);
                                     continue;
                                 }
                             }
 
                             {
-                                var resolver = new ByInstanceResolver(Name,returnType, property.Name, ImmutableArray.Create(returnType), options, presolverContext);
+                                var resolver = new ByInstanceResolver(resolverId++,Name,returnType, property.Name, ImmutableArray.Create(returnType), options, presolverContext);
                                 Add(returnType, resolver);
                             }
                         }
@@ -151,7 +152,7 @@ public sealed class ContainerTypeData
                             var type = property.Type;
                             var module = presolverContext.GetOrAddModuleData(type);
                             //if (module is null) break;
-                            module.AddResolvers(Name,property.Name + ".", InterfaceToRegisteredMethod, presolverContext);
+                            module.AddResolvers(ref resolverId,Name,property.Name + ".", InterfaceToRegisteredMethod, presolverContext);
                         }
                     }
                 }
@@ -180,8 +181,6 @@ public sealed class ContainerTypeData
                     if (InterfaceToRegisteredMethod.TryGetValue(pair.Key, out var list))
                     {
                         InterfaceToMethod[pair.Key] = list[list.Count - 1];
-
-                        for (var i = 0; i < list.Count(); i++) list[i].Id = i;
                     }
 
                     list ??= [];
@@ -198,7 +197,7 @@ public sealed class ContainerTypeData
                 var enumerableType = presolverContext.IEnumerableType.Construct(pair.Key);
                 var listType = presolverContext.IReadOnlyListType.Construct(pair.Key);
                 var collectionResolver = new CollectionResolver(Name,enumerableType, ImmutableArray.Create((ITypeSymbol)enumerableType), pair.Value, []);
-                for (var i = 0; i < pair.Value.Count; i++) pair.Value[i].Id = i;
+              
 
                 InterfaceToCollectionMethod[pair.Key] = collectionResolver;
                 InterfaceToMethod[enumerableType] = collectionResolver;
@@ -356,7 +355,7 @@ public sealed class ContainerTypeData
                     var fieldTypeName = meta.UsableTypeName;
                     var fieldName = "field_" + fieldCount;
                     writer.AppendLine("Presolver.ManualLazy<",typeName,"> ",fieldName,";");
-                    writer.AppendLine($"public {typeName} Resolve_{fieldTypeName}<TContainer>(TContainer container,{FullName} c)where TContainer : global::Presolver.ContainerBase, ",SelfName,".IInterface");
+                    writer.AppendLine($"public {typeName} Resolve_{fieldTypeName}_{meta.Id}<TContainer>(TContainer container,{FullName} c)where TContainer : global::Presolver.ContainerBase, ",SelfName,".IInterface");
                     writer.BeginBlock();
                     writer.AppendLine("ref var l = ref ",fieldName,";");
                     writer.AppendLine("if (!l.TryGetValue(out var v)) lock (l.LockObject) if (!l.TryGetValue(out v))");
@@ -443,7 +442,7 @@ public sealed class ContainerTypeData
                 var fieldName = "field_" + fieldCount; 
                 var fieldTypeName = meta.UsableTypeName;
                 writer.AppendLine($"Presolver.ManualLazy<{typeName}> {fieldName};");
-                writer.AppendLine($"public {typeName} Resolve_{fieldTypeName}(object _)");
+                writer.AppendLine($"public {typeName} Resolve_{fieldTypeName}_{meta.Id}(object _)");
 
                 writer.BeginBlock();
                 writer.AppendLine($"ref var l = ref {fieldName};");
@@ -479,7 +478,7 @@ public sealed class ContainerTypeData
                 if (meta is ByFromParentResolver or CollectionResolver) continue;
                 if (meta.Scope != Scope.Transient) continue;
                 var typeName = meta.Type.ToFullyQualifiedString();
-                writer.AppendLine($"public {typeName} Resolve_{meta.UsableTypeName}<TContainer>(TContainer container) where TContainer : global::Presolver.ContainerBase,{SelfName}.IInterface");
+                writer.AppendLine($"public {typeName} Resolve_{meta.UsableTypeName}_{meta.Id}<TContainer>(TContainer container) where TContainer : global::Presolver.ContainerBase,{SelfName}.IInterface");
                
                 writer.BeginBlock();
 
@@ -573,6 +572,8 @@ public sealed class ContainerTypeData
                     
                     Append("Resolve_");
                     Append(meta.UsableTypeName);
+                    Append("_");
+                    Append(meta.Id.ToString());
                     if (meta.Scope == Scope.Scoped)
                     {
                         Append("(this,");
@@ -653,7 +654,6 @@ public sealed class ContainerTypeData
             foreach (var n in sortedNodes)
             {
                 var meta = n;
-               // writer.AppendLine(meta.Type.ToFullyQualifiedString() + " " + n.UsableTypeName);
                 meta.WriteDebugInfo(debugBuilder);
                 debugBuilder.AppendLine();
                 if (meta.Dependencies.Length > 0)

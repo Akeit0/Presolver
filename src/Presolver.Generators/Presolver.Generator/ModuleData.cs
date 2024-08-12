@@ -95,7 +95,7 @@ public sealed class ModuleData
     }
 
 
-    public void AddResolvers(string implementedPlace,string propertyAccessor, Dictionary<ITypeSymbol, List<Resolver>> interfaceToResolver, PresolverContext refs)
+    public void AddResolvers(ref int id,string implementedPlace,string propertyAccessor, Dictionary<ITypeSymbol, List<Resolver>> interfaceToResolver, PresolverContext refs)
     {
         void Add(ITypeSymbol type, Resolver resolver)
         {
@@ -110,13 +110,13 @@ public sealed class ModuleData
 
         foreach (var factoryData in factories)
         {
-            var resolver = new ByFactoryResolver(implementedPlace,factoryData.ReturnType, propertyAccessor + factoryData.Accessor, factoryData.Method, factoryData.Interfaces, factoryData.Scope);
+            var resolver = new ByFactoryResolver(id++,implementedPlace,factoryData.ReturnType, propertyAccessor + factoryData.Accessor, factoryData.Method, factoryData.Interfaces, factoryData.Scope);
             foreach (var interfaceType in factoryData.Interfaces) Add(interfaceType, resolver);
         }
 
         foreach (var instance in instances)
         {
-            var resolver = new ByInstanceResolver(implementedPlace,instance.Type, propertyAccessor + instance.Name, instance.Interfaces, instance.Options, refs);
+            var resolver = new ByInstanceResolver(id++,implementedPlace,instance.Type, propertyAccessor + instance.Name, instance.Interfaces, instance.Options, refs);
             foreach (var interfaceType in instance.Interfaces) Add(interfaceType, resolver);
         }
     }

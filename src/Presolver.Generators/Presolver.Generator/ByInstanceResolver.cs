@@ -10,7 +10,7 @@ namespace Presolver.Generator;
 
 public class ByInstanceResolver : Resolver
 {
-    public ByInstanceResolver(string implementedPlace, ITypeSymbol type, string name, ImmutableArray<ITypeSymbol> interfaces, InstanceOptions options, PresolverContext refs) : base(implementedPlace,interfaces, Scope.Singleton)
+    public ByInstanceResolver(int id,string implementedPlace, ITypeSymbol type, string name, ImmutableArray<ITypeSymbol> interfaces, InstanceOptions options, PresolverContext refs) : base(id,implementedPlace,interfaces, Scope.Singleton)
     {
         Type = type;
         Name = name;

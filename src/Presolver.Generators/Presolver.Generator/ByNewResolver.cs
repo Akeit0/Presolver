@@ -13,7 +13,7 @@ public sealed class ByNewResolver : Resolver
 {
     readonly ImmutableArray<ITypeSymbol> dependencies;
 
-    public ByNewResolver(string implementedPlace,INamedTypeSymbol type, ImmutableArray<ITypeSymbol> interfaces, Scope scope, PresolverContext refs) : base(implementedPlace,interfaces, scope)
+    public ByNewResolver(int id,string implementedPlace,INamedTypeSymbol type, ImmutableArray<ITypeSymbol> interfaces, Scope scope, PresolverContext refs) : base(id,implementedPlace,interfaces, scope)
     {
         Type = type;
         if (!refs.TypeDependencies.TryGetValue(type, out dependencies))

@@ -13,13 +13,12 @@ public sealed class ByFromParentResolver : Resolver
 {
     readonly Resolver parent;
 
-    public ByFromParentResolver(Resolver parent, int depth) : base(parent.ImplementedPlace,parent.Interfaces, parent.Scope)
+    public ByFromParentResolver(Resolver parent, int depth) : base(parent.Id,parent.ImplementedPlace,parent.Interfaces, parent.Scope)
     {
         this.parent = parent;
         Depth = depth;
         Type = parent.Type;
         UsableTypeName = parent.UsableTypeName;
-        Id = parent.Id;
     }
 
     public override ITypeSymbol Type { get; }

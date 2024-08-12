@@ -12,7 +12,7 @@ public sealed class ByFactoryResolver : Resolver
 {
     readonly string accessor;
 
-    public ByFactoryResolver(string implementedPlace,ITypeSymbol returnType, string accessor, IMethodSymbol method, ImmutableArray<ITypeSymbol> interfaces, Scope scope) : base(implementedPlace,interfaces, scope)
+    public ByFactoryResolver(int id,string implementedPlace,ITypeSymbol returnType, string accessor, IMethodSymbol method, ImmutableArray<ITypeSymbol> interfaces, Scope scope) : base(id,implementedPlace,interfaces, scope)
     {
         this.accessor = accessor;
         this.method = method;

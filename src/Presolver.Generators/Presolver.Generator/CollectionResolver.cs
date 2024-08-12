@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Presolver.Generator;
 
-public class CollectionResolver(string implementedPlace,ITypeSymbol collectionType, ImmutableArray<ITypeSymbol> interfaces, List<Resolver> list, List<ByFromParentResolver> parentMetas) : Resolver(implementedPlace,interfaces, Scope.Transient)
+public class CollectionResolver(string implementedPlace,ITypeSymbol collectionType, ImmutableArray<ITypeSymbol> interfaces, List<Resolver> list, List<ByFromParentResolver> parentMetas) : Resolver(0,implementedPlace,interfaces, Scope.Transient)
 {
     public override ITypeSymbol Type => collectionType;
 
