@@ -12,7 +12,7 @@ dotnet add package Presolver
 
 ## How To Use
 Define your services and interfaces.  
-Define your container class which derives from `ContainerBase`, and implement the interfaces with the services.
+Implement the interfaces with the services.
 You have to mark it partial and attach `GenerateResolver` attribute to it.
 ```csharp
 using Presolver;
@@ -24,7 +24,7 @@ class ServiceA : IServiceA;
 record ServiceB(IServiceA ServiceA);
 
 [GenerateResolver]
-public partial class Container : ContainerBase, ITransient<IServiceA, ServiceA>,
+public partial class Container : ITransient<IServiceA, ServiceA>,
                                                 ISingleton<ServiceB>;
 ```
 Then you can resolve the services from the container.
