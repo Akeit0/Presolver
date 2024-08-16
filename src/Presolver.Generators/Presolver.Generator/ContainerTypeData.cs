@@ -289,12 +289,11 @@ public sealed class ContainerTypeData
         writer.AppendLine("#pragma warning disable CS8600");
         if (ContainerType.ContainingNamespace is { IsGlobalNamespace: false })
         {
-            writer.Append("namespace ");
-            writer.AppendLine(ContainerType.ContainingNamespace.FullName());
+            writer.AppendLine("namespace ",ContainerType.ContainingNamespace.FullName());
             writer.BeginBlock();
         }
-        
-        writer.AppendLine("partial class ",SelfName,": Presolver.IUserDeclaredContainer, ",SelfName,".IInterface"); 
+
+        writer.AppendLine("partial class ", SelfName, Parent == null ? ":Presolver.ContainerBase, Presolver.IUserDeclaredContainer, " : ": Presolver.IUserDeclaredContainer, ", SelfName, ".IInterface");
         writer.BeginBlock();
         writer.Append("public interface IInterface");
 
@@ -355,7 +354,7 @@ public sealed class ContainerTypeData
                     var fieldTypeName = meta.UsableTypeName;
                     var fieldName = "field_" + fieldCount;
                     writer.AppendLine("Presolver.ManualLazy<",typeName,"> ",fieldName,";");
-                    writer.AppendLine($"public {typeName} Resolve_{fieldTypeName}_{meta.Id}<TContainer>(TContainer container,{FullName} c)where TContainer : global::Presolver.ContainerBase, ",SelfName,".IInterface");
+                    writer.AppendLine($"public {typeName} Resolve_{fieldTypeName}_{meta.Id}<TContainer>(TContainer container,{FullName} c)where TContainer : global::Presolver.ContainerBase, {SelfName}.IInterface");
                     writer.BeginBlock();
                     writer.AppendLine("ref var l = ref ",fieldName,";");
                     writer.AppendLine("if (!l.TryGetValue(out var v)) lock (l.LockObject) if (!l.TryGetValue(out v))");

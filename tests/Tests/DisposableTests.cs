@@ -6,7 +6,7 @@ namespace Presolver.Tests
 {
     
     [GenerateResolver]
-    public partial class DisposableTestsContainer : ContainerBase, IScoped<IDisposable, A>, ISingleton<HashSet<IDisposable>>
+    public partial class DisposableTestsContainer : IScoped<IDisposable, A>, ISingleton<HashSet<IDisposable>>
     {
         [Instance(InstanceOptions.AddToContainer)]
         B B { get; } = new B();

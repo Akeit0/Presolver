@@ -53,8 +53,12 @@ public partial class InstanceD(string name) : IDisposable
     }
 }
 
+public abstract class AbstractClass
+{
+}
+
 [GenerateResolver]
-public sealed partial class Container : ContainerBase, IScoped<IAInterface,A>, ITransient<B, B>,IScoped<A>
+public sealed partial class Container : IScoped<IAInterface,A>, ITransient<B, B>,IScoped<A>
 {
     [Factory] Transient<int> GetInt() => 1;
     [Factory] Singleton<IAInterface, A> GetA() => new A(this);

@@ -54,10 +54,12 @@ public class PresolverContext(Compilation compilation, SourceProductionContext c
         }
 
         var baseType = type.BaseType;
+        var isFirst = true;
         while (baseType != null)
         {
             if(baseType.ContainingNamespace.Name == "Presolver"&& baseType.Name == "ContainerBase")
                 return true;
+            
             var attributes = baseType.GetAttributes();
             if (attributes.Any(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, GenerateContainerAttributeType)))
             {
@@ -66,10 +68,15 @@ public class PresolverContext(Compilation compilation, SourceProductionContext c
             }
 
             baseType = baseType.BaseType;
+            if(!isFirst&&baseType == null)
+            {
+                ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustDeriveFromContainerBase, CurrentLocation, type.ToFullyQualifiedString()));
+                return false;
+            }
+            isFirst = false;
         }
 
-        ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustDeriveFromContainerBase, CurrentLocation, type.ToFullyQualifiedString()));
-        return false;
+        return true;
     }
 
     public bool IsDisposable(ITypeSymbol type)

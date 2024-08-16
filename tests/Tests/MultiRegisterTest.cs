@@ -4,7 +4,7 @@ using static Presolver.Tests.MultiRegisterTest;
 namespace Presolver.Tests
 {
     [GenerateResolver]
-    public sealed partial class MultiRegisterTestContainer : ContainerBase, ISingleton<IInterface1, IInterface2, A, A>
+    public sealed partial class MultiRegisterTestContainer : ISingleton<IInterface1, IInterface2, A, A>
     {
         [Factory] Transient<IInterface3,IInterface4,B,B> GetB()=>new B();
     }
